@@ -17,6 +17,7 @@ const MAX_PARTICLE_SPEED = 12;
 const MIN_CAPTURE_SPEED = 1.4;
 const MIN_ATTRACTOR_RADIUS = 28;
 const MAX_ATTRACTOR_RADIUS = 92;
+const START_GRACE_MS = 1250;
 const TOUCH_DEVICE = matchMedia("(pointer: coarse)").matches;
 const MAX_RENDER_DPR = 1;
 
@@ -199,6 +200,7 @@ const world = {
   attractorsActive: false,
   spaceDown: false,
   pendingRestartAt: 0,
+  graceUntil: 0,
   runStartedAt: 0,
   losses: 0,
   pausedUntil: 0,
@@ -305,7 +307,7 @@ function buildObstacles() {
   level.obstacles = config.obstacles.map((obstacle, index) => {
     const width = obstacle.width < 1 ? obstacle.width * world.width : obstacle.width;
     const height = obstacle.height < 1 ? obstacle.height * world.height : obstacle.height;
-    return {
+    const built = {
       kind: obstacle.kind || "solid",
       breakSpeed: obstacle.breakSpeed ? obstacle.breakSpeed + Math.floor(level.index / levelConfigs.length) * 0.6 : null,
       x: obstacle.x * world.width - width / 2,
@@ -314,7 +316,36 @@ function buildObstacles() {
       height,
       shape: makeObstacleShape(width, height, index)
     };
+    return moveObstacleOutOfStartCorridor(built);
   });
+}
+
+function moveObstacleOutOfStartCorridor(obstacle) {
+  const spawn = particleStartState();
+  const graceFrames = START_GRACE_MS / (1000 / 60);
+  const endX = spawn.x + Math.cos(spawn.angle) * spawn.speed * graceFrames;
+  const endY = spawn.y + Math.sin(spawn.angle) * spawn.speed * graceFrames;
+  const padding = Math.max(46, Math.min(world.width, world.height) * 0.13);
+  const minX = Math.min(spawn.x, endX) - padding;
+  const maxX = Math.max(spawn.x, endX) + padding;
+  const minY = Math.min(spawn.y, endY) - padding;
+  const maxY = Math.max(spawn.y, endY) + padding;
+
+  if (
+    obstacle.x + obstacle.width < minX ||
+    obstacle.x > maxX ||
+    obstacle.y + obstacle.height < minY ||
+    obstacle.y > maxY
+  ) {
+    return obstacle;
+  }
+
+  const targetX = maxX + padding * 0.25;
+  const targetY = minY - obstacle.height - padding * 0.2;
+  const canMoveRight = targetX + obstacle.width < world.width - 24;
+  obstacle.x = canMoveRight ? targetX : Math.max(24, obstacle.x);
+  obstacle.y = canMoveRight ? obstacle.y : Math.max(24, targetY);
+  return obstacle;
 }
 
 function makeObstacleShape(width, height, index) {
@@ -340,13 +371,23 @@ function makeObstacleShape(width, height, index) {
 
 function resetParticle() {
   particle.capturedBy = null;
-  particle.x = Math.max(28, world.width * 0.16);
-  particle.y = Math.max(80, world.height * 0.66);
-  const angle = -0.22;
-  const speed = 2.05;
+  const start = particleStartState();
+  particle.x = start.x;
+  particle.y = start.y;
+  const angle = start.angle;
+  const speed = start.speed;
   particle.vx = Math.cos(angle) * speed;
   particle.vy = Math.sin(angle) * speed;
   particle.speed = speed;
+}
+
+function particleStartState() {
+  return {
+    x: Math.max(28, world.width * 0.16),
+    y: Math.max(80, world.height * 0.66),
+    angle: -0.22,
+    speed: 2.05
+  };
 }
 
 function startLevel(index = 0, message) {
@@ -360,6 +401,7 @@ function startLevel(index = 0, message) {
   world.won = false;
   world.transitioning = false;
   world.pausedUntil = 0;
+  world.graceUntil = 0;
   world.nextLevelAt = 0;
   smashShards.length = 0;
   particleTrail.length = 0;
@@ -405,6 +447,7 @@ function startFastGame() {
   hideOverlay();
   plannedControlsEl.hidden = true;
   startLevel(0);
+  world.graceUntil = performance.now() + START_GRACE_MS;
 }
 
 function startPlannedGame() {
@@ -457,6 +500,7 @@ function launchPlannedLevel() {
   if (world.playStyle !== "planned" || world.mode !== "planning") return;
   world.mode = "playing";
   world.attractorsActive = false;
+  world.graceUntil = performance.now() + START_GRACE_MS;
   showMessage(`LEVEL ${level.index + 1}`, 700);
   syncPlannedControls();
 }
@@ -757,6 +801,8 @@ function update(dt) {
       startLevel(level.index, null);
       if (world.playStyle === "planned") {
         showMessage("PLACE UP TO 5", 900);
+      } else {
+        world.graceUntil = performance.now() + START_GRACE_MS;
       }
     }
     return;
@@ -803,16 +849,18 @@ function update(dt) {
   }
   updateTrail(dt);
 
+  const inGrace = performance.now() < world.graceUntil;
+
   if (goalHit()) {
     if (particle.speed >= level.targetSpeed) {
       smashGoal();
-    } else {
+    } else if (!inGrace) {
       restartLevel();
     }
     return;
   }
 
-  const obstacle = obstacleHit();
+  const obstacle = inGrace ? null : obstacleHit();
   if (obstacle) {
     if (obstacle.kind === "destructible") {
       if (particle.speed >= obstacle.breakSpeed) {
@@ -826,7 +874,7 @@ function update(dt) {
     return;
   }
 
-  if (borderHit()) {
+  if (!inGrace && borderHit()) {
     restartLevel();
   }
 }
