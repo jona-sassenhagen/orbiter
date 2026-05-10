@@ -22,9 +22,16 @@
         <div class="overlay-panel">
           <h1 id="overlay-title">Orbiter</h1>
           <p id="overlay-copy">Touch and hold to place orbital attractors. Capture the particle, build speed, release it into the matching goal, and avoid borders and solid obstacles.</p>
-          <button id="overlay-action" type="button">Start</button>
+          <div class="overlay-actions">
+            <button id="overlay-action" type="button">Fast</button>
+            <button id="overlay-secondary" type="button">Planned</button>
+          </div>
         </div>
       </section>
+      <div id="planned-controls" class="planned-controls" hidden>
+        <button id="launch" type="button">Start</button>
+        <button id="activate" type="button">Attract</button>
+      </div>
     </main>
     <script src="game.js"></script>
   </body>

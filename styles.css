@@ -191,7 +191,15 @@ body {
   line-height: 1.2;
 }
 
-.overlay button {
+.overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.overlay button,
+.planned-controls button {
   margin-top: 18px;
   min-width: 108px;
   min-height: 44px;
@@ -203,8 +211,39 @@ body {
   text-transform: uppercase;
 }
 
-.overlay button:active {
+.overlay button {
+  margin-top: 0;
+}
+
+.overlay button.secondary {
+  background: rgba(236, 247, 239, 0.1);
+}
+
+.overlay button:active,
+.planned-controls button:active,
+.planned-controls button.active {
   transform: translateY(1px);
+  background: rgba(98, 227, 140, 0.3);
+}
+
+.planned-controls {
+  position: absolute;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 4;
+  display: flex;
+  gap: 8px;
+}
+
+.planned-controls[hidden] {
+  display: none;
+}
+
+.planned-controls button {
+  margin-top: 0;
+  min-width: 92px;
+  background: rgba(7, 17, 13, 0.62);
+  backdrop-filter: blur(12px);
 }
 
 @media (max-width: 560px) {

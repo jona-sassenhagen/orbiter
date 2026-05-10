@@ -7,6 +7,10 @@ const overlayEl = document.getElementById("overlay");
 const overlayTitleEl = document.getElementById("overlay-title");
 const overlayCopyEl = document.getElementById("overlay-copy");
 const overlayActionEl = document.getElementById("overlay-action");
+const overlaySecondaryEl = document.getElementById("overlay-secondary");
+const plannedControlsEl = document.getElementById("planned-controls");
+const launchButton = document.getElementById("launch");
+const activateButton = document.getElementById("activate");
 
 const BACKGROUND_COUNT = 7;
 const MAX_PARTICLE_SPEED = 12;
@@ -191,6 +195,9 @@ const world = {
   transitioning: false,
   nextLevelAt: 0,
   mode: "start",
+  playStyle: "fast",
+  attractorsActive: false,
+  spaceDown: false,
   pendingRestartAt: 0,
   runStartedAt: 0,
   losses: 0,
@@ -357,6 +364,8 @@ function startLevel(index = 0, message) {
   smashShards.length = 0;
   particleTrail.length = 0;
   attractors.clear();
+  world.attractorsActive = false;
+  syncPlannedControls();
   resetParticle();
   updateHud();
   if (message !== null) {
@@ -373,33 +382,51 @@ function updateHud() {
   levelEl.textContent = String(level.index + 1);
 }
 
-function showOverlay(kind, title, copy, actionText = "") {
+function showOverlay(kind, title, copy, primaryText = "", secondaryText = "") {
   overlayEl.className = `overlay show ${kind}`;
   overlayTitleEl.textContent = title;
   overlayCopyEl.textContent = copy;
-  overlayActionEl.textContent = actionText;
-  overlayActionEl.hidden = !actionText;
+  overlayActionEl.textContent = primaryText;
+  overlayActionEl.hidden = !primaryText;
+  overlaySecondaryEl.textContent = secondaryText;
+  overlaySecondaryEl.hidden = !secondaryText;
+  overlaySecondaryEl.classList.toggle("secondary", Boolean(secondaryText));
 }
 
 function hideOverlay() {
   overlayEl.className = "overlay";
 }
 
-function startGame() {
+function startFastGame() {
+  world.playStyle = "fast";
   world.mode = "playing";
   world.losses = 0;
   world.runStartedAt = performance.now();
   hideOverlay();
+  plannedControlsEl.hidden = true;
   startLevel(0);
+}
+
+function startPlannedGame() {
+  world.playStyle = "planned";
+  world.mode = "planning";
+  world.losses = 0;
+  world.runStartedAt = performance.now();
+  hideOverlay();
+  startLevel(0);
+  showMessage("PLACE UP TO 5", 1200);
+  syncPlannedControls();
 }
 
 function showStartScreen() {
   world.mode = "start";
+  plannedControlsEl.hidden = true;
   showOverlay(
     "start",
     "Orbiter",
-    "Touch and hold to place orbital attractors. Capture the particle, build speed, release it into the matching goal, and avoid borders and solid obstacles.",
-    "Start"
+    "Choose fast touch play, or planned play where you place up to five attractors before launching and hold Attract or Space to turn them on.",
+    "Fast",
+    "Planned"
   );
 }
 
@@ -413,8 +440,39 @@ function completeGame() {
     "complete",
     "Congratulations!",
     `You beat all ${levelConfigs.length} levels in ${timeText}. Losses: ${world.losses}.`,
-    "Play Again"
+    "Fast",
+    "Planned"
   );
+}
+
+function syncPlannedControls() {
+  const planned = world.playStyle === "planned" && (world.mode === "planning" || world.mode === "playing");
+  plannedControlsEl.hidden = !planned;
+  launchButton.hidden = world.mode !== "planning";
+  activateButton.hidden = world.mode !== "playing";
+  activateButton.classList.toggle("active", world.attractorsActive);
+}
+
+function launchPlannedLevel() {
+  if (world.playStyle !== "planned" || world.mode !== "planning") return;
+  world.mode = "playing";
+  world.attractorsActive = false;
+  showMessage(`LEVEL ${level.index + 1}`, 700);
+  syncPlannedControls();
+}
+
+function setAttractorsActive(active) {
+  if (world.playStyle !== "planned" || world.mode !== "playing") return;
+  if (world.attractorsActive === active) return;
+  world.attractorsActive = active;
+  activateButton.classList.toggle("active", active);
+
+  if (!active && particle.capturedBy !== null) {
+    const tangent = particle.orbitAngle + particle.orbitDirection * Math.PI / 2;
+    particle.vx = Math.cos(tangent) * particle.speed;
+    particle.vy = Math.sin(tangent) * particle.speed;
+    particle.capturedBy = null;
+  }
 }
 
 function pointerPosition(event) {
@@ -426,7 +484,27 @@ function pointerPosition(event) {
 }
 
 function addAttractor(event) {
-  if (world.mode !== "playing" || world.won) return;
+  if (world.playStyle === "planned" && world.mode === "planning") {
+    if (attractors.size >= 5) {
+      showMessage("MAX 5", 650);
+      return;
+    }
+    const pos = pointerPosition(event);
+    const id = `planned-${attractors.size}-${Math.round(performance.now())}`;
+    attractors.set(id, {
+      id,
+      x: pos.x,
+      y: pos.y,
+      radius: MIN_ATTRACTOR_RADIUS,
+      age: 0,
+      pulse: 0,
+      planned: true
+    });
+    showMessage(`${attractors.size}/5`, 520);
+    return;
+  }
+
+  if (world.playStyle !== "fast" || world.mode !== "playing" || world.won) return;
   canvas.setPointerCapture(event.pointerId);
   const pos = pointerPosition(event);
   attractors.set(event.pointerId, {
@@ -445,6 +523,7 @@ function moveAttractor(event) {
 }
 
 function releaseAttractor(event) {
+  if (world.playStyle !== "fast") return;
   const attractor = attractors.get(event.pointerId);
   if (!attractor) return;
 
@@ -498,6 +577,7 @@ function borderHit() {
 
 function maybeCapture() {
   if (particle.capturedBy !== null) return;
+  if (world.playStyle === "planned" && !world.attractorsActive) return;
 
   for (const attractor of attractors.values()) {
     const dx = particle.x - attractor.x;
@@ -671,24 +751,28 @@ function updateTrail(dt) {
 function update(dt) {
   if (world.mode === "lost") {
     updateSmash(dt);
-    updateTrail(dt);
     if (performance.now() >= world.pendingRestartAt) {
       hideOverlay();
-      world.mode = "playing";
+      world.mode = world.playStyle === "planned" ? "planning" : "playing";
       startLevel(level.index, null);
+      if (world.playStyle === "planned") {
+        showMessage("PLACE UP TO 5", 900);
+      }
     }
     return;
   }
 
   if (world.mode !== "playing") {
     updateSmash(dt);
-    updateTrail(dt);
     return;
   }
 
   for (const attractor of attractors.values()) {
-    attractor.age += dt;
-    attractor.radius = Math.min(MAX_ATTRACTOR_RADIUS, attractor.radius + dt * 21);
+    const active = world.playStyle === "fast" || world.attractorsActive;
+    if (active) {
+      attractor.age += dt;
+      attractor.radius = Math.min(MAX_ATTRACTOR_RADIUS, attractor.radius + dt * 21);
+    }
     attractor.pulse = Math.max(0, attractor.pulse - dt * 2.8);
   }
 
@@ -839,18 +923,19 @@ function drawSmash() {
 function drawAttractors() {
   for (const attractor of attractors.values()) {
     const captureRadius = Math.max(26, attractor.radius * 1.35);
+    const active = world.playStyle === "fast" || world.attractorsActive;
 
     ctx.save();
     ctx.translate(attractor.x, attractor.y);
     ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha = 0.1 + attractor.pulse * 0.08;
+    ctx.globalAlpha = active ? 0.1 + attractor.pulse * 0.08 : 0.04;
     ctx.fillStyle = "rgba(98, 227, 140, 0.32)";
     ctx.beginPath();
     ctx.arc(0, 0, captureRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
 
-    ctx.strokeStyle = "rgba(98, 227, 140, 0.34)";
+    ctx.strokeStyle = active ? "rgba(98, 227, 140, 0.34)" : "rgba(236, 247, 239, 0.28)";
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 10]);
     ctx.beginPath();
@@ -858,7 +943,7 @@ function drawAttractors() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = "rgba(98, 227, 140, 0.16)";
+    ctx.fillStyle = active ? "rgba(98, 227, 140, 0.16)" : "rgba(236, 247, 239, 0.08)";
     ctx.beginPath();
     ctx.arc(0, 0, attractor.radius, 0, Math.PI * 2);
     ctx.fill();
@@ -988,7 +1073,25 @@ canvas.addEventListener("pointerdown", addAttractor);
 canvas.addEventListener("pointermove", moveAttractor);
 canvas.addEventListener("pointerup", releaseAttractor);
 canvas.addEventListener("pointercancel", releaseAttractor);
-overlayActionEl.addEventListener("click", startGame);
+overlayActionEl.addEventListener("click", startFastGame);
+overlaySecondaryEl.addEventListener("click", startPlannedGame);
+launchButton.addEventListener("click", launchPlannedLevel);
+activateButton.addEventListener("pointerdown", () => setAttractorsActive(true));
+activateButton.addEventListener("pointerup", () => setAttractorsActive(false));
+activateButton.addEventListener("pointercancel", () => setAttractorsActive(false));
+activateButton.addEventListener("pointerleave", () => setAttractorsActive(false));
+window.addEventListener("keydown", (event) => {
+  if (event.code !== "Space" || world.spaceDown) return;
+  world.spaceDown = true;
+  event.preventDefault();
+  setAttractorsActive(true);
+});
+window.addEventListener("keyup", (event) => {
+  if (event.code !== "Space") return;
+  world.spaceDown = false;
+  event.preventDefault();
+  setAttractorsActive(false);
+});
 
 resize();
 startLevel(0, null);
