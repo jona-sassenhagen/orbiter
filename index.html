@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Orbiter</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell" aria-label="Orbiter game">
+      <canvas id="game" aria-label="Orbiter playfield"></canvas>
+      <section class="hud" aria-live="polite">
+        <div class="readouts">
+          <div>
+            <span>Level</span>
+            <strong id="level">1</strong>
+          </div>
+        </div>
+      </section>
+      <div id="message" class="message" role="status"></div>
+      <section id="overlay" class="overlay" aria-live="polite">
+        <div class="overlay-panel">
+          <h1 id="overlay-title">Orbiter</h1>
+          <p id="overlay-copy">Touch and hold to place orbital attractors. Capture the particle, build speed, release it into the matching goal, and avoid borders and solid obstacles.</p>
+          <button id="overlay-action" type="button">Start</button>
+        </div>
+      </section>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>
