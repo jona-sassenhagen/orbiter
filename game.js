@@ -229,7 +229,7 @@ const levelConfigs = [
       { kind: "solid", x: 0.3, y: 0.78, width: 18, height: 0.18 },
       { kind: "solid", x: 0.5, y: 0.22, width: 0.12, height: 18 },
       { kind: "solid", x: 0.86, y: 0.24, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.9, y: 0.12, width: 0.1, height: 0.08 }
+      { kind: "solid", x: 0.74, y: 0.015, width: 0.28, height: 0.025 }
     ]
   },
   {
@@ -244,7 +244,7 @@ const levelConfigs = [
       { kind: "destructible", breakSpeed: 11.5, x: 0.36, y: 0.78, width: 18, height: 0.15 },
       { kind: "solid", x: 0.18, y: 0.74, width: 0.12, height: 18 },
       { kind: "solid", x: 0.58, y: 0.82, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.24, y: 0.91, width: 0.28, height: 0.1 }
+      { kind: "solid", x: 0.24, y: 0.985, width: 0.28, height: 0.025 }
     ]
   },
   {
@@ -262,7 +262,7 @@ const levelConfigs = [
       { kind: "solid", x: 0.9, y: 0.18, width: 18, height: 0.16 },
       { kind: "solid", x: 0.9, y: 0.54, width: 18, height: 0.16 },
       { kind: "solid", x: 0.78, y: 0.36, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.94, y: 0.3, width: 0.1, height: 0.28 }
+      { kind: "solid", x: 0.995, y: 0.3, width: 0.025, height: 0.28 }
     ]
   },
   {
