@@ -624,12 +624,12 @@ function releaseAttractor(event) {
   attractor.shrinking = true;
 }
 
-function restartLevel() {
+function restartLevel(delay = 900) {
   if (world.mode !== "playing" || world.won || world.transitioning || performance.now() < world.pausedUntil) return;
   world.mode = "lost";
   world.losses += 1;
   world.pausedUntil = performance.now() + 650;
-  world.pendingRestartAt = performance.now() + 900;
+  world.pendingRestartAt = performance.now() + delay;
   attractors.clear();
   showOverlay("loss", "You lost", "Restarting level...", "");
 }
@@ -645,6 +645,13 @@ function goalHit() {
 
 function obstacleHit() {
   return level.obstacles.find((obstacle) => circleRectHit(particle, obstacle));
+}
+
+function obstacleImpactPoint(obstacle) {
+  return {
+    x: Math.max(obstacle.x, Math.min(particle.x, obstacle.x + obstacle.width)),
+    y: Math.max(obstacle.y, Math.min(particle.y, obstacle.y + obstacle.height))
+  };
 }
 
 function circleRectHit(circle, rect) {
@@ -789,6 +796,54 @@ function smashObstacle(obstacle) {
   }
 }
 
+function crashIntoObstacle(obstacle) {
+  const impact = obstacleImpactPoint(obstacle);
+  const particleColor = speedColor(particle.speed);
+  const obstacleColor = obstacle.kind === "destructible"
+    ? speedColor(obstacle.breakSpeed)
+    : "rgba(232, 242, 236, 0.92)";
+  const impactAngle = Math.atan2(particle.vy, particle.vx);
+
+  for (let index = 0; index < 28; index += 1) {
+    const spread = (Math.random() - 0.5) * Math.PI * 1.35;
+    const angle = impactAngle + Math.PI + spread;
+    const force = 2.8 + Math.random() * 6.2 + particle.speed * 0.18;
+    const size = 2.5 + Math.random() * 8;
+    smashShards.push({
+      x: impact.x + (Math.random() - 0.5) * particle.radius * 2,
+      y: impact.y + (Math.random() - 0.5) * particle.radius * 2,
+      width: size * (0.55 + Math.random() * 0.75),
+      height: size * (0.35 + Math.random() * 0.55),
+      vx: Math.cos(angle) * force + (Math.random() - 0.5) * 1.7,
+      vy: Math.sin(angle) * force + (Math.random() - 0.5) * 1.7,
+      rotation: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.58,
+      color: index % 3 === 0 ? obstacleColor : particleColor,
+      alpha: 1
+    });
+  }
+
+  for (let index = 0; index < 10; index += 1) {
+    const angle = impactAngle + (Math.random() - 0.5) * 0.9;
+    const force = 1.2 + Math.random() * 3;
+    smashShards.push({
+      x: impact.x,
+      y: impact.y,
+      width: 10 + Math.random() * 16,
+      height: 2 + Math.random() * 3,
+      vx: Math.cos(angle) * force,
+      vy: Math.sin(angle) * force,
+      rotation: angle,
+      spin: (Math.random() - 0.5) * 0.2,
+      color: obstacleColor,
+      alpha: 0.9
+    });
+  }
+
+  particleTrail.length = 0;
+  showMessage("CRASH", 520);
+}
+
 function breakObstacle(obstacle) {
   smashObstacle(obstacle);
   level.obstacles = level.obstacles.filter((candidate) => candidate !== obstacle);
@@ -928,10 +983,12 @@ function update(dt) {
       if (particle.speed >= obstacle.breakSpeed) {
         breakObstacle(obstacle);
       } else {
-        restartLevel();
+        crashIntoObstacle(obstacle);
+        restartLevel(1100);
       }
     } else {
-      restartLevel();
+      crashIntoObstacle(obstacle);
+      restartLevel(1100);
     }
     return;
   }
