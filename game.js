@@ -154,11 +154,11 @@ const levelConfigs = [
   },
   {
     targetSpeed: 9.6,
-    goal: { edge: "left", align: 0.42, length: 0.44, thickness: 1.22 },
+    goal: { edge: "top", align: 0.5, length: 0.56, thickness: 1.22 },
     obstacles: [
-      { kind: "destructible", breakSpeed: 6.8, x: 0.3, y: 0.26, width: 0.16, height: 18 },
-      { kind: "solid", x: 0.42, y: 0.48, width: 0.2, height: 18 },
-      { kind: "destructible", breakSpeed: 8.5, x: 0.28, y: 0.62, width: 18, height: 0.18 }
+      { kind: "destructible", breakSpeed: 6.8, x: 0.34, y: 0.32, width: 0.16, height: 18 },
+      { kind: "solid", x: 0.48, y: 0.5, width: 0.18, height: 18 },
+      { kind: "destructible", breakSpeed: 8.5, x: 0.58, y: 0.28, width: 18, height: 0.18 }
     ]
   },
   {
@@ -196,13 +196,13 @@ const levelConfigs = [
   },
   {
     targetSpeed: 11.6,
-    goal: { edge: "left", align: 0.18, length: 0.34, thickness: 1.28 },
+    goal: { edge: "right", align: 0.45, length: 0.44, thickness: 1.28 },
     obstacles: [
-      { kind: "destructible", breakSpeed: 8.9, x: 0.28, y: 0.34, width: 0.15, height: 18 },
-      { kind: "destructible", breakSpeed: 10.2, x: 0.42, y: 0.18, width: 0.16, height: 18 },
-      { kind: "solid", x: 0.36, y: 0.5, width: 0.16, height: 18 },
-      { kind: "destructible", breakSpeed: 11.1, x: 0.32, y: 0.24, width: 18, height: 0.18 },
-      { kind: "solid", x: 0.18, y: 0.52, width: 18, height: 0.18 }
+      { kind: "destructible", breakSpeed: 8.9, x: 0.34, y: 0.34, width: 0.15, height: 18 },
+      { kind: "destructible", breakSpeed: 10.2, x: 0.58, y: 0.5, width: 0.16, height: 18 },
+      { kind: "solid", x: 0.7, y: 0.66, width: 0.16, height: 18 },
+      { kind: "destructible", breakSpeed: 11.1, x: 0.6, y: 0.24, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.82, y: 0.28, width: 18, height: 0.18 }
     ]
   },
   {
@@ -227,7 +227,8 @@ const levelConfigs = [
       { kind: "destructible", breakSpeed: 11.4, x: 0.62, y: 0.2, width: 18, height: 0.15 },
       { kind: "solid", x: 0.3, y: 0.78, width: 18, height: 0.18 },
       { kind: "solid", x: 0.5, y: 0.22, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.86, y: 0.24, width: 0.12, height: 18 }
+      { kind: "solid", x: 0.86, y: 0.24, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.74, y: 0.09, width: 0.28, height: 0.1 }
     ]
   },
   {
@@ -241,7 +242,8 @@ const levelConfigs = [
       { kind: "destructible", breakSpeed: 11.7, x: 0.82, y: 0.74, width: 0.13, height: 18 },
       { kind: "destructible", breakSpeed: 11.5, x: 0.36, y: 0.78, width: 18, height: 0.15 },
       { kind: "solid", x: 0.18, y: 0.74, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.58, y: 0.82, width: 0.12, height: 18 }
+      { kind: "solid", x: 0.58, y: 0.82, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.24, y: 0.91, width: 0.28, height: 0.1 }
     ]
   },
   {
@@ -258,7 +260,8 @@ const levelConfigs = [
       { kind: "solid", x: 0.35, y: 0.76, width: 0.15, height: 18 },
       { kind: "solid", x: 0.9, y: 0.18, width: 18, height: 0.16 },
       { kind: "solid", x: 0.9, y: 0.54, width: 18, height: 0.16 },
-      { kind: "solid", x: 0.78, y: 0.36, width: 0.12, height: 18 }
+      { kind: "solid", x: 0.78, y: 0.36, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.94, y: 0.3, width: 0.1, height: 0.28 }
     ]
   },
   {
@@ -1461,6 +1464,8 @@ function drawAttractors() {
     ctx.translate(attractor.x, attractor.y);
     ctx.globalCompositeOperation = "lighter";
     ctx.globalAlpha = 1;
+    drawAttractorOrbitBounds(attractor, phase);
+
     ctx.fillStyle = glowColor;
     ctx.beginPath();
     ctx.arc(0, 0, captureRadius + breathe * 4, 0, Math.PI * 2);
@@ -1504,6 +1509,31 @@ function drawAttractors() {
     ctx.fill();
     ctx.restore();
   }
+}
+
+function drawAttractorOrbitBounds(attractor, phase) {
+  const minOrbitRadius = Math.max(26, MIN_ATTRACTOR_RADIUS * 1.35);
+  const maxOrbitRadius = Math.max(26, MAX_ATTRACTOR_RADIUS * 1.35);
+  const minColor = attractorColor({ radius: MIN_ATTRACTOR_RADIUS }, 0.24, -2);
+  const maxColor = attractorColor({ radius: MAX_ATTRACTOR_RADIUS }, 0.26, 4);
+
+  ctx.save();
+  ctx.lineWidth = 1.3;
+  ctx.setLineDash([3, 8]);
+  ctx.lineDashOffset = -phase * 8;
+  ctx.strokeStyle = minColor;
+  ctx.beginPath();
+  ctx.arc(0, 0, minOrbitRadius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.lineWidth = 1.7;
+  ctx.setLineDash([9, 12]);
+  ctx.lineDashOffset = phase * 10;
+  ctx.strokeStyle = maxColor;
+  ctx.beginPath();
+  ctx.arc(0, 0, maxOrbitRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawParticleTrail() {
