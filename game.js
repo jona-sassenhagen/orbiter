@@ -874,7 +874,7 @@ function update(dt) {
     return;
   }
 
-  if (!inGrace && borderHit()) {
+  if (!inGrace && particle.capturedBy === null && borderHit()) {
     restartLevel();
   }
 }
@@ -1013,11 +1013,13 @@ function drawAttractors() {
 function drawParticleTrail() {
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  for (const point of particleTrail) {
+  for (let index = 0; index < particleTrail.length; index += 1) {
+    const point = particleTrail[index];
+    const taper = (index + 1) / particleTrail.length;
     ctx.globalAlpha = point.alpha;
     ctx.fillStyle = point.color;
     ctx.beginPath();
-    ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+    ctx.arc(point.x, point.y, point.radius * (0.55 + taper * 0.7), 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -1072,6 +1074,54 @@ function drawParticle() {
   ctx.beginPath();
   ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
   ctx.fill();
+
+  const spin = performance.now() * 0.006;
+  ctx.globalAlpha = 0.72;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  for (let i = 0; i < 3; i += 1) {
+    const angle = spin + i * (Math.PI * 2 / 3);
+    const next = angle + 0.72;
+    ctx.moveTo(
+      particle.x + Math.cos(angle) * particle.radius * 1.45,
+      particle.y + Math.sin(angle) * particle.radius * 1.45
+    );
+    ctx.lineTo(
+      particle.x + Math.cos(next) * particle.radius * 1.85,
+      particle.y + Math.sin(next) * particle.radius * 1.85
+    );
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+  ctx.beginPath();
+  ctx.arc(
+    particle.x - particle.radius * 0.24,
+    particle.y - particle.radius * 0.26,
+    particle.radius * 0.34,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+
+  ctx.fillStyle = color;
+  for (let i = 0; i < 3; i += 1) {
+    const angle = -spin * 1.2 + i * (Math.PI * 2 / 3);
+    ctx.globalAlpha = 0.72 - i * 0.12;
+    ctx.beginPath();
+    ctx.arc(
+      particle.x + Math.cos(angle) * particle.radius * 2.25,
+      particle.y + Math.sin(angle) * particle.radius * 2.25,
+      particle.radius * 0.22,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
   ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
   ctx.lineWidth = 2;
   ctx.stroke();
