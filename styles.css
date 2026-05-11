@@ -220,8 +220,7 @@ body {
 }
 
 .overlay button:active,
-.planned-controls button:active,
-.planned-controls button.active {
+.planned-controls button:active {
   transform: translateY(1px);
   background: rgba(98, 227, 140, 0.3);
 }

@@ -10,7 +10,6 @@ const overlayActionEl = document.getElementById("overlay-action");
 const overlaySecondaryEl = document.getElementById("overlay-secondary");
 const plannedControlsEl = document.getElementById("planned-controls");
 const launchButton = document.getElementById("launch");
-const activateButton = document.getElementById("activate");
 
 const BACKGROUND_COUNT = 7;
 const MAX_PARTICLE_SPEED = 12;
@@ -468,7 +467,7 @@ function showStartScreen() {
   showOverlay(
     "start",
     "Orbiter",
-    "Choose fast touch play, or planned play where you place up to five attractors before launching and hold Attract or Space to turn them on.",
+    "Fast mode: touch and hold to create live attractors as the particle moves. Planned mode: place up to five attractors, press Start or Enter to launch, then hold Space or press anywhere on the playfield to turn all attractors on.",
     "Fast",
     "Planned"
   );
@@ -491,10 +490,8 @@ function completeGame() {
 
 function syncPlannedControls() {
   const planned = world.playStyle === "planned" && (world.mode === "planning" || world.mode === "playing");
-  plannedControlsEl.hidden = !planned;
+  plannedControlsEl.hidden = !planned || world.mode !== "planning";
   launchButton.hidden = world.mode !== "planning";
-  activateButton.hidden = world.mode !== "playing";
-  activateButton.classList.toggle("active", world.attractorsActive);
 }
 
 function launchPlannedLevel() {
@@ -514,7 +511,6 @@ function setAttractorsActive(active) {
   if (world.playStyle !== "planned" || world.mode !== "playing") return;
   if (world.attractorsActive === active) return;
   world.attractorsActive = active;
-  activateButton.classList.toggle("active", active);
 
   if (!active && particle.capturedBy !== null) {
     const tangent = particle.orbitAngle + particle.orbitDirection * Math.PI / 2;
@@ -544,6 +540,12 @@ function pointerPosition(event) {
 }
 
 function addAttractor(event) {
+  if (world.playStyle === "planned" && world.mode === "playing") {
+    event.preventDefault();
+    setAttractorsActive(true);
+    return;
+  }
+
   if (world.playStyle === "planned" && world.mode === "planning") {
     if (attractors.size >= 5) {
       showMessage("MAX 5", 650);
@@ -583,6 +585,12 @@ function moveAttractor(event) {
 }
 
 function releaseAttractor(event) {
+  if (world.playStyle === "planned" && world.mode === "playing") {
+    event.preventDefault();
+    setAttractorsActive(false);
+    return;
+  }
+
   if (world.playStyle !== "fast") return;
   const attractor = attractors.get(event.pointerId);
   if (!attractor) return;
@@ -1167,10 +1175,6 @@ canvas.addEventListener("pointercancel", releaseAttractor);
 overlayActionEl.addEventListener("click", startFastGame);
 overlaySecondaryEl.addEventListener("click", startPlannedGame);
 launchButton.addEventListener("click", launchPlannedLevel);
-activateButton.addEventListener("pointerdown", () => setAttractorsActive(true));
-activateButton.addEventListener("pointerup", () => setAttractorsActive(false));
-activateButton.addEventListener("pointercancel", () => setAttractorsActive(false));
-activateButton.addEventListener("pointerleave", () => setAttractorsActive(false));
 window.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     if (world.spaceDown) return;
