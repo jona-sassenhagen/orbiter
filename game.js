@@ -90,10 +90,11 @@ const levelConfigs = [
   },
   {
     targetSpeed: 5.9,
-    goal: { edge: "left", align: 0.68, length: 0.7 },
+    goal: { edge: "left", align: 0.24, length: 0.7 },
     obstacles: [
-      { kind: "destructible", breakSpeed: 4.2, x: 0.32, y: 0.42, width: 0.2, height: 18 },
-      { kind: "solid", x: 0.62, y: 0.56, width: 0.22, height: 18 }
+      { kind: "destructible", breakSpeed: 4.2, x: 0.22, y: 0.28, width: 0.18, height: 18 },
+      { kind: "solid", x: 0.36, y: 0.2, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.36, y: 0.42, width: 18, height: 0.18 }
     ]
   },
   {
