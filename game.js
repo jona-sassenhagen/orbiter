@@ -1107,6 +1107,11 @@ function drawParticleTrail() {
 
 function drawParticle() {
   const color = speedColor(particle.speed);
+  const motionAngle = Math.hypot(particle.vx, particle.vy) > 0.01 ? Math.atan2(particle.vy, particle.vx) : 0;
+  const direction = particle.capturedBy !== null
+    ? particle.orbitAngle + particle.orbitDirection * Math.PI / 2
+    : motionAngle;
+  const radius = particle.radius;
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
 
@@ -1140,33 +1145,35 @@ function drawParticle() {
     ctx.globalAlpha = 1;
   }
 
-  ctx.globalAlpha = 0.12;
+  ctx.save();
+  ctx.translate(particle.x, particle.y);
+  ctx.rotate(direction);
+
+  ctx.globalAlpha = 0.1;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(particle.x, particle.y, particle.radius * 5.2, 0, Math.PI * 2);
+  ctx.ellipse(-radius * 0.35, 0, radius * 5.8, radius * 3.8, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 0.2;
   ctx.beginPath();
-  ctx.arc(particle.x, particle.y, particle.radius * 3.2, 0, Math.PI * 2);
+  ctx.ellipse(-radius * 0.2, 0, radius * 3.4, radius * 2.25, 0, 0, Math.PI * 2);
   ctx.fill();
+
   ctx.globalAlpha = 0.9;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(particle.x, particle.y, particle.radius * 1.15, 0, Math.PI * 2);
+  ctx.moveTo(radius * 1.75, 0);
+  ctx.bezierCurveTo(radius * 0.95, -radius * 1.25, -radius * 1.2, -radius * 1.25, -radius * 2.35, 0);
+  ctx.bezierCurveTo(-radius * 1.2, radius * 1.25, radius * 0.95, radius * 1.25, radius * 1.75, 0);
   ctx.fill();
 
   ctx.globalAlpha = 0.88;
   ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
   ctx.beginPath();
-  ctx.arc(
-    particle.x - particle.radius * 0.24,
-    particle.y - particle.radius * 0.26,
-    particle.radius * 0.42,
-    0,
-    Math.PI * 2
-  );
+  ctx.ellipse(radius * 0.42, -radius * 0.34, radius * 0.44, radius * 0.26, -0.35, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 1;
+  ctx.restore();
 
   if (particle.capturedBy === null) {
     ctx.globalAlpha = 0.42;
