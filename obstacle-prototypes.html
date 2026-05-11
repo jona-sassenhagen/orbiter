@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Orbiter Obstacle Prototypes</title>
+    <style>
+      :root {
+        --bg: #07110d;
+        --ink: #ecf7ef;
+        --muted: #8ca098;
+        --blue: #66ddff;
+        --green: #62e38c;
+        --amber: #ffbf45;
+        --red: #ff4f64;
+        --solid: #d8e8df;
+        --panel: rgba(7, 17, 13, 0.72);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 18% 12%, rgba(98, 227, 140, 0.16), transparent 24rem),
+          radial-gradient(circle at 86% 24%, rgba(102, 221, 255, 0.13), transparent 22rem),
+          linear-gradient(135deg, #06100d 0%, #0b1515 48%, #06090d 100%);
+        color: var(--ink);
+        font-family: "Avenir Next Condensed", "DIN Condensed", "Bahnschrift", sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 40px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(36px, 8vw, 72px);
+        line-height: 0.9;
+        letter-spacing: 0;
+      }
+
+      .intro {
+        max-width: 780px;
+        margin: 12px 0 24px;
+        color: var(--muted);
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        overflow: hidden;
+        border: 1px solid rgba(236, 247, 239, 0.16);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+      }
+
+      .stage {
+        position: relative;
+        height: 300px;
+        background:
+          linear-gradient(rgba(236, 247, 239, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(236, 247, 239, 0.045) 1px, transparent 1px),
+          radial-gradient(circle at center, rgba(236, 247, 239, 0.04), transparent 62%);
+        background-size: 44px 44px, 44px 44px, auto;
+      }
+
+      .caption {
+        padding: 14px 16px 16px;
+        border-top: 1px solid rgba(236, 247, 239, 0.12);
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .swatch {
+        width: 16px;
+        height: 8px;
+        border-radius: 8px;
+        box-shadow: 0 0 14px currentColor;
+      }
+
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stage {
+          height: 260px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Obstacle Prototypes</h1>
+      <p class="intro">Four visual directions for Orbiter obstacles. Each one keeps collision geometry simple, keeps destructible obstacle color tied to required speed, and treats indestructible obstacles as pale structural material.</p>
+
+      <section class="grid">
+        <article class="card">
+          <div class="stage">
+            <svg viewBox="0 0 520 300" role="img" aria-label="Neon cut metal obstacles">
+              <defs>
+                <filter id="soft-glow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="8" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g filter="url(#soft-glow)" opacity="0.9">
+                <polygon points="58,70 198,52 218,86 188,118 46,122 36,88" fill="rgba(255,79,100,0.18)" stroke="var(--red)" stroke-width="3"/>
+                <polygon points="280,172 430,154 470,184 456,226 300,236 260,204" fill="rgba(255,191,69,0.18)" stroke="var(--amber)" stroke-width="3"/>
+                <polygon points="112,188 180,170 250,184 232,222 132,232" fill="rgba(216,232,223,0.13)" stroke="var(--solid)" stroke-width="3"/>
+              </g>
+              <g opacity="0.52">
+                <path d="M72 85 L196 70 M72 103 L164 101 M294 191 L440 177 M304 215 L412 208" stroke="white" stroke-width="1.5"/>
+              </g>
+            </svg>
+          </div>
+          <div class="caption">
+            <h2>Cut Metal Neon</h2>
+            <p>Faceted plates with a glow shell and a few surface cuts. Keeps the current polygon idea but makes it look intentional.</p>
+            <div class="legend">
+              <span class="chip" style="color: var(--red)"><span class="swatch" style="background: currentColor"></span> red gate</span>
+              <span class="chip" style="color: var(--amber)"><span class="swatch" style="background: currentColor"></span> amber gate</span>
+              <span class="chip" style="color: var(--solid)"><span class="swatch" style="background: currentColor"></span> solid</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="stage">
+            <svg viewBox="0 0 520 300" role="img" aria-label="Energy glass obstacles">
+              <defs>
+                <linearGradient id="glass-red" x1="0" x2="1">
+                  <stop offset="0" stop-color="#ff4f64" stop-opacity="0.14"/>
+                  <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.2"/>
+                  <stop offset="1" stop-color="#ff4f64" stop-opacity="0.42"/>
+                </linearGradient>
+                <filter id="glass-glow" x="-70%" y="-70%" width="240%" height="240%">
+                  <feGaussianBlur stdDeviation="6" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g filter="url(#glass-glow)">
+                <path d="M70 74 L258 56 L284 92 L252 128 L74 134 L50 100 Z" fill="url(#glass-red)" stroke="var(--red)" stroke-width="2.5"/>
+                <path d="M318 62 L390 74 L408 242 L342 252 L322 214 Z" fill="rgba(216,232,223,0.16)" stroke="var(--solid)" stroke-width="2.5"/>
+                <path d="M94 206 L248 184 L276 214 L258 246 L88 250 L60 224 Z" fill="rgba(98,227,140,0.2)" stroke="var(--green)" stroke-width="2.5"/>
+              </g>
+              <g opacity="0.55" stroke="white" stroke-width="1.2">
+                <path d="M78 88 L256 72"/>
+                <path d="M88 118 L228 112"/>
+                <path d="M102 220 L244 202"/>
+                <path d="M336 80 L372 236"/>
+              </g>
+            </svg>
+          </div>
+          <div class="caption">
+            <h2>Ion Glass</h2>
+            <p>Transparent single-color bodies with specular streaks. Softer and prettier, but still reads as a barrier.</p>
+            <div class="legend">
+              <span class="chip" style="color: var(--green)"><span class="swatch" style="background: currentColor"></span> easy</span>
+              <span class="chip" style="color: var(--red)"><span class="swatch" style="background: currentColor"></span> hard</span>
+              <span class="chip" style="color: var(--solid)"><span class="swatch" style="background: currentColor"></span> solid</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="stage">
+            <svg viewBox="0 0 520 300" role="img" aria-label="Orbital pylons">
+              <defs>
+                <filter id="pylon-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="5" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g filter="url(#pylon-glow)">
+                <polygon points="96,52 140,68 148,236 108,252 70,226 76,82" fill="rgba(216,232,223,0.2)" stroke="var(--solid)" stroke-width="3"/>
+                <polygon points="206,76 444,70 466,96 446,124 212,132 188,104" fill="rgba(102,221,255,0.2)" stroke="var(--blue)" stroke-width="3"/>
+                <polygon points="248,176 450,162 478,190 452,222 244,232 218,204" fill="rgba(255,79,100,0.2)" stroke="var(--red)" stroke-width="3"/>
+              </g>
+              <g fill="rgba(236,247,239,0.88)">
+                <circle cx="105" cy="86" r="3"/>
+                <circle cx="113" cy="218" r="3"/>
+                <circle cx="224" cy="100" r="3"/>
+                <circle cx="430" cy="96" r="3"/>
+                <circle cx="250" cy="203" r="3"/>
+                <circle cx="440" cy="192" r="3"/>
+              </g>
+            </svg>
+          </div>
+          <div class="caption">
+            <h2>Orbital Pylons</h2>
+            <p>More industrial and readable at speed. Corners, anchor dots, and heavy silhouettes make late-level clutter cleaner.</p>
+            <div class="legend">
+              <span class="chip" style="color: var(--blue)"><span class="swatch" style="background: currentColor"></span> medium</span>
+              <span class="chip" style="color: var(--red)"><span class="swatch" style="background: currentColor"></span> hard</span>
+              <span class="chip" style="color: var(--solid)"><span class="swatch" style="background: currentColor"></span> solid</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="stage">
+            <svg viewBox="0 0 520 300" role="img" aria-label="Minimal monolith obstacles">
+              <defs>
+                <filter id="monolith-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="10" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <g filter="url(#monolith-glow)">
+                <path d="M80 66 L270 56 L294 84 L270 112 L84 122 L52 96 Z" fill="rgba(255,191,69,0.86)"/>
+                <path d="M332 54 L398 70 L424 250 L360 266 L330 236 Z" fill="rgba(216,232,223,0.78)"/>
+                <path d="M112 184 L278 174 L310 204 L288 238 L104 250 L72 218 Z" fill="rgba(255,79,100,0.88)"/>
+              </g>
+              <g fill="none" stroke="rgba(7,17,13,0.7)" stroke-width="5">
+                <path d="M92 88 L260 80"/>
+                <path d="M126 212 L274 204"/>
+                <path d="M356 84 L388 230"/>
+              </g>
+            </svg>
+          </div>
+          <div class="caption">
+            <h2>Solid Monoliths</h2>
+            <p>Bold single-color polygons with dark incisions. Most legible, least fussy, and probably cheapest in canvas.</p>
+            <div class="legend">
+              <span class="chip" style="color: var(--amber)"><span class="swatch" style="background: currentColor"></span> amber</span>
+              <span class="chip" style="color: var(--red)"><span class="swatch" style="background: currentColor"></span> red</span>
+              <span class="chip" style="color: var(--solid)"><span class="swatch" style="background: currentColor"></span> solid</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

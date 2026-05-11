@@ -84,6 +84,14 @@ const levelConfigs = [
     ]
   },
   {
+    targetSpeed: 7.6,
+    goal: { edge: "right", align: 0.32, length: 0.52 },
+    obstacles: [
+      { kind: "solid", x: 0.47, y: 0.34, width: 0.2, height: 18 },
+      { kind: "destructible", breakSpeed: 6.4, x: 0.58, y: 0.63, width: 18, height: 0.24 }
+    ]
+  },
+  {
     targetSpeed: 8.4,
     goal: { edge: "top", align: 0.88, length: 0.62 },
     obstacles: [
@@ -95,17 +103,17 @@ const levelConfigs = [
     ]
   },
   {
-    targetSpeed: 8.9,
-    goal: { edge: "right", align: 0.18, length: 0.86, motion: { axis: "edge", center: 0.5, range: 0.34, speed: 0.72 } },
-    obstacles: []
-  },
-  {
     targetSpeed: 5.8,
     goal: { edge: "right", align: 0.5, length: 1.6, thickness: 1.18 },
     obstacles: [
       { kind: "solid", x: 0.82, y: 0.24, width: 0.1, height: 0.34 },
       { kind: "solid", x: 0.82, y: 0.76, width: 0.1, height: 0.34 }
     ]
+  },
+  {
+    targetSpeed: 8.9,
+    goal: { edge: "right", align: 0.18, length: 0.86, motion: { axis: "edge", center: 0.5, range: 0.34, speed: 0.72 } },
+    obstacles: []
   },
   {
     targetSpeed: 5.9,
@@ -123,14 +131,6 @@ const levelConfigs = [
       { kind: "destructible", breakSpeed: 5.2, x: 0.42, y: 0.3, width: 18, height: 0.22 },
       { kind: "destructible", breakSpeed: 5.9, x: 0.63, y: 0.5, width: 0.2, height: 18 },
       { kind: "solid", x: 0.3, y: 0.69, width: 0.2, height: 18 }
-    ]
-  },
-  {
-    targetSpeed: 7.6,
-    goal: { edge: "right", align: 0.32, length: 0.52 },
-    obstacles: [
-      { kind: "solid", x: 0.47, y: 0.34, width: 0.2, height: 18 },
-      { kind: "destructible", breakSpeed: 6.4, x: 0.58, y: 0.63, width: 18, height: 0.24 }
     ]
   },
   {
@@ -397,6 +397,13 @@ function speedColor(speed) {
   const hue = 142 - t * 142;
   const light = 62 + t * 3;
   return `hsl(${hue} 86% ${light}%)`;
+}
+
+function speedColorAlpha(speed, alpha, lightBoost = 0) {
+  const t = Math.max(0, Math.min(1, speed / MAX_PARTICLE_SPEED));
+  const hue = 142 - t * 142;
+  const light = Math.max(48, Math.min(74, 62 + t * 3 + lightBoost));
+  return `hsl(${hue} 86% ${light}% / ${alpha})`;
 }
 
 function attractorColor(attractor, alpha = 1, lightBoost = 0) {
@@ -1362,13 +1369,57 @@ function drawObstacles() {
 }
 
 function drawObstacleShape(obstacle, destructible) {
-  const obstacleColor = destructible ? speedColor(obstacle.breakSpeed) : "rgba(232, 242, 236, 0.82)";
+  const bodyColor = destructible ? speedColorAlpha(obstacle.breakSpeed, 0.28) : "rgba(216, 232, 223, 0.22)";
+  const edgeColor = destructible ? speedColorAlpha(obstacle.breakSpeed, 0.96, 6) : "rgba(232, 242, 236, 0.88)";
+  const coreColor = destructible ? speedColorAlpha(obstacle.breakSpeed, 0.9, 10) : "rgba(236, 247, 239, 0.92)";
+  const shadowColor = destructible ? speedColorAlpha(obstacle.breakSpeed, 0.7, 8) : "rgba(216, 232, 223, 0.42)";
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
-  ctx.globalCompositeOperation = destructible ? "lighter" : "source-over";
-  ctx.fillStyle = obstacleColor;
+  ctx.globalCompositeOperation = "lighter";
+
+  ctx.shadowColor = shadowColor;
+  ctx.shadowBlur = destructible ? 14 : 8;
+  ctx.fillStyle = bodyColor;
   traceObstaclePath(obstacle);
   ctx.fill();
+
+  ctx.shadowBlur = destructible ? 9 : 5;
+  ctx.strokeStyle = edgeColor;
+  ctx.lineWidth = Math.max(2, Math.min(4, Math.min(obstacle.width, obstacle.height) * 0.08));
+  traceObstaclePath(obstacle);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.globalCompositeOperation = "source-over";
+  ctx.strokeStyle = "rgba(7, 17, 13, 0.62)";
+  ctx.lineWidth = Math.max(1.5, Math.min(3, Math.min(obstacle.width, obstacle.height) * 0.055));
+  traceObstaclePath(obstacle);
+  ctx.stroke();
+
+  drawObstacleAnchorNodes(obstacle, coreColor, destructible);
+  ctx.restore();
+}
+
+function drawObstacleAnchorNodes(obstacle, color, destructible) {
+  const points = obstacle.shape;
+  const nodeRadius = Math.max(2.2, Math.min(4.2, Math.min(obstacle.width, obstacle.height) * 0.12));
+  const selected = [
+    points[0],
+    points[Math.floor(points.length / 3)],
+    points[Math.floor(points.length * 2 / 3)],
+    points[points.length - 1]
+  ];
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = destructible ? 8 : 5;
+  for (const point of selected) {
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, nodeRadius, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
