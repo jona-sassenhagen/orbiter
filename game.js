@@ -347,6 +347,7 @@ const particle = {
   radius: 7,
   vx: 2.0,
   vy: -0.35,
+  alive: true,
   capturedBy: null,
   orbitAngle: 0,
   orbitDirection: 1,
@@ -508,6 +509,7 @@ function makeObstacleShape(width, height, index) {
 }
 
 function resetParticle() {
+  particle.alive = true;
   particle.capturedBy = null;
   const start = particleStartState();
   particle.x = start.x;
@@ -913,6 +915,7 @@ function smashGoal() {
     }
   }
 
+  destroyParticleAt({ x: particle.x, y: particle.y }, color, 18);
   world.won = true;
   world.transitioning = true;
   world.nextLevelAt = now + 1200;
@@ -1010,8 +1013,47 @@ function crashIntoObstacle(obstacle) {
     });
   }
 
+  particle.alive = false;
+  particle.capturedBy = null;
   particleTrail.length = 0;
   showMessage("CRASH", 520);
+}
+
+function crashIntoGoal() {
+  const impact = {
+    x: Math.max(goal.x, Math.min(particle.x, goal.x + goal.width)),
+    y: Math.max(goal.y, Math.min(particle.y, goal.y + goal.height))
+  };
+  destroyParticleAt(impact, speedColor(level.targetSpeed), 34);
+  particleTrail.length = 0;
+  showMessage("CRASH", 520);
+}
+
+function destroyParticleAt(impact, barrierColor, count) {
+  const particleColor = speedColor(particle.speed);
+  const impactAngle = Math.atan2(particle.vy, particle.vx);
+
+  particle.alive = false;
+  particle.capturedBy = null;
+
+  for (let index = 0; index < count; index += 1) {
+    const spread = (Math.random() - 0.5) * Math.PI * 1.45;
+    const angle = impactAngle + Math.PI + spread;
+    const force = 2.2 + Math.random() * 5.4 + particle.speed * 0.22;
+    const size = 2.2 + Math.random() * 7;
+    smashShards.push({
+      x: impact.x + (Math.random() - 0.5) * particle.radius * 2,
+      y: impact.y + (Math.random() - 0.5) * particle.radius * 2,
+      width: size * (0.5 + Math.random() * 0.8),
+      height: size * (0.35 + Math.random() * 0.6),
+      vx: Math.cos(angle) * force + (Math.random() - 0.5) * 1.6,
+      vy: Math.sin(angle) * force + (Math.random() - 0.5) * 1.6,
+      rotation: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.62,
+      color: index % 4 === 0 ? barrierColor : particleColor,
+      alpha: 1
+    });
+  }
 }
 
 function breakObstacle(obstacle) {
@@ -1046,13 +1088,15 @@ function updateSmash(dt) {
 }
 
 function updateTrail(dt) {
-  particleTrail.push({
-    x: particle.x,
-    y: particle.y,
-    radius: particle.radius,
-    color: speedColor(particle.speed),
-    alpha: world.fastRender ? 0.38 : 0.68
-  });
+  if (particle.alive) {
+    particleTrail.push({
+      x: particle.x,
+      y: particle.y,
+      radius: particle.radius,
+      color: speedColor(particle.speed),
+      alpha: world.fastRender ? 0.38 : 0.68
+    });
+  }
 
   const maxTrail = world.fastRender ? 16 : 34;
   if (particleTrail.length > maxTrail) {
@@ -1113,9 +1157,11 @@ function update(dt) {
   positionGoal();
 
   if (world.transitioning) {
-    particle.x += particle.vx * dt * 60;
-    particle.y += particle.vy * dt * 60;
-    particle.speed = Math.hypot(particle.vx, particle.vy);
+    if (particle.alive) {
+      particle.x += particle.vx * dt * 60;
+      particle.y += particle.vy * dt * 60;
+      particle.speed = Math.hypot(particle.vx, particle.vy);
+    }
     updateTrail(dt);
 
     if (performance.now() >= world.nextLevelAt || borderHit()) {
@@ -1142,6 +1188,7 @@ function update(dt) {
     if (particle.speed >= level.targetSpeed) {
       smashGoal();
     } else if (!inGrace) {
+      crashIntoGoal();
       restartLevel();
     }
     return;
@@ -1333,6 +1380,8 @@ function drawParticleTrail() {
 }
 
 function drawParticle() {
+  if (!particle.alive) return;
+
   const color = speedColor(particle.speed);
   const motionAngle = Math.hypot(particle.vx, particle.vy) > 0.01 ? Math.atan2(particle.vy, particle.vx) : 0;
   const direction = particle.capturedBy !== null
