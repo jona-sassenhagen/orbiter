@@ -36,6 +36,14 @@ const levelConfigs = [
     ]
   },
   {
+    targetSpeed: 5.8,
+    goal: { edge: "bottom", align: 0.5, length: 1.72, thickness: 1.18 },
+    obstacles: [
+      { kind: "solid", x: 0.25, y: 0.84, width: 0.34, height: 0.1 },
+      { kind: "solid", x: 0.75, y: 0.84, width: 0.34, height: 0.1 }
+    ]
+  },
+  {
     targetSpeed: 6.4,
     goal: { edge: "left", align: 0.28, length: 0.92 },
     obstacles: [
