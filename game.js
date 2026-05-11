@@ -1273,10 +1273,8 @@ function breakObstacle(obstacle) {
     particle.capturedBy = null;
   }
 
-  const speed = Math.max(1.3, particle.speed * 0.82);
-  particle.vx = Math.cos(angle) * speed;
-  particle.vy = Math.sin(angle) * speed;
-  particle.speed = speed;
+  particle.vx = Math.cos(angle) * particle.speed;
+  particle.vy = Math.sin(angle) * particle.speed;
   showMessage("BREAK", 520);
 }
 
