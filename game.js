@@ -10,6 +10,8 @@ const overlayFastCopyEl = document.getElementById("overlay-fast-copy");
 const overlayPlannedCopyEl = document.getElementById("overlay-planned-copy");
 const overlayActionEl = document.getElementById("overlay-action");
 const overlaySecondaryEl = document.getElementById("overlay-secondary");
+const levelSelectWrapEl = document.getElementById("level-select-wrap");
+const levelSelectEl = document.getElementById("level-select");
 const plannedControlsEl = document.getElementById("planned-controls");
 const launchButton = document.getElementById("launch");
 
@@ -153,7 +155,9 @@ const levelConfigs = [
     obstacles: [
       { kind: "solid", x: 0.33, y: 0.52, width: 0.2, height: 18 },
       { kind: "destructible", breakSpeed: 9.2, x: 0.55, y: 0.34, width: 18, height: 0.2 },
-      { kind: "solid", x: 0.72, y: 0.62, width: 18, height: 0.22 }
+      { kind: "destructible", breakSpeed: 10.7, x: 0.65, y: 0.52, width: 0.14, height: 18 },
+      { kind: "solid", x: 0.72, y: 0.62, width: 18, height: 0.22 },
+      { kind: "destructible", breakSpeed: 11.0, x: 0.82, y: 0.78, width: 0.16, height: 18 }
     ]
   },
   {
@@ -162,7 +166,9 @@ const levelConfigs = [
     obstacles: [
       { kind: "destructible", breakSpeed: 8.9, x: 0.34, y: 0.36, width: 0.15, height: 18 },
       { kind: "destructible", breakSpeed: 10.2, x: 0.58, y: 0.5, width: 0.16, height: 18 },
-      { kind: "solid", x: 0.7, y: 0.72, width: 0.18, height: 18 }
+      { kind: "solid", x: 0.7, y: 0.72, width: 0.18, height: 18 },
+      { kind: "destructible", breakSpeed: 11.1, x: 0.5, y: 0.23, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.25, y: 0.58, width: 18, height: 0.2 }
     ]
   },
   {
@@ -171,7 +177,9 @@ const levelConfigs = [
     obstacles: [
       { kind: "solid", x: 0.36, y: 0.3, width: 0.18, height: 18 },
       { kind: "solid", x: 0.54, y: 0.55, width: 18, height: 0.26 },
-      { kind: "destructible", breakSpeed: 10.6, x: 0.72, y: 0.38, width: 0.14, height: 18 }
+      { kind: "destructible", breakSpeed: 10.6, x: 0.72, y: 0.38, width: 0.14, height: 18 },
+      { kind: "destructible", breakSpeed: 11.4, x: 0.78, y: 0.66, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.25, y: 0.72, width: 0.16, height: 18 }
     ]
   },
   {
@@ -180,7 +188,90 @@ const levelConfigs = [
     obstacles: [
       { kind: "destructible", breakSpeed: 9.8, x: 0.32, y: 0.28, width: 18, height: 0.2 },
       { kind: "solid", x: 0.5, y: 0.48, width: 0.22, height: 18 },
-      { kind: "destructible", breakSpeed: 11.2, x: 0.7, y: 0.7, width: 0.14, height: 18 }
+      { kind: "destructible", breakSpeed: 11.2, x: 0.7, y: 0.7, width: 0.14, height: 18 },
+      { kind: "destructible", breakSpeed: 11.7, x: 0.82, y: 0.44, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.3, y: 0.78, width: 18, height: 0.18 }
+    ]
+  },
+  {
+    targetSpeed: 12.0,
+    goal: { edge: "bottom", align: 0.22, length: 0.28, thickness: 1.38, motion: { center: 0.5, range: 0.36, speed: 0.92 } },
+    obstacles: [
+      { kind: "destructible", breakSpeed: 10.4, x: 0.28, y: 0.34, width: 18, height: 0.2 },
+      { kind: "solid", x: 0.47, y: 0.43, width: 0.16, height: 18 },
+      { kind: "destructible", breakSpeed: 11.2, x: 0.6, y: 0.6, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.75, y: 0.32, width: 0.15, height: 18 },
+      { kind: "destructible", breakSpeed: 11.7, x: 0.82, y: 0.74, width: 0.13, height: 18 }
+    ]
+  },
+  {
+    targetSpeed: 12.0,
+    goal: { edge: "right", align: 0.22, length: 0.27, thickness: 1.42, motion: { center: 0.5, range: 0.34, speed: 1.02 } },
+    obstacles: [
+      { kind: "solid", x: 0.28, y: 0.3, width: 18, height: 0.22 },
+      { kind: "destructible", breakSpeed: 10.8, x: 0.42, y: 0.48, width: 0.14, height: 18 },
+      { kind: "solid", x: 0.58, y: 0.66, width: 18, height: 0.22 },
+      { kind: "destructible", breakSpeed: 11.5, x: 0.68, y: 0.34, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.9, x: 0.8, y: 0.58, width: 18, height: 0.17 },
+      { kind: "solid", x: 0.35, y: 0.76, width: 0.15, height: 18 },
+      { kind: "solid", x: 0.9, y: 0.28, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.9, y: 0.72, width: 18, height: 0.18 }
+    ]
+  },
+  {
+    targetSpeed: 12.0,
+    goal: { edge: "top", align: 0.16, length: 0.26, thickness: 1.45, motion: { center: 0.52, range: 0.4, speed: 0.96 } },
+    obstacles: [
+      { kind: "destructible", breakSpeed: 10.7, x: 0.26, y: 0.27, width: 0.13, height: 18 },
+      { kind: "solid", x: 0.42, y: 0.42, width: 18, height: 0.22 },
+      { kind: "destructible", breakSpeed: 11.4, x: 0.58, y: 0.3, width: 0.13, height: 18 },
+      { kind: "solid", x: 0.72, y: 0.5, width: 0.15, height: 18 },
+      { kind: "destructible", breakSpeed: 11.8, x: 0.52, y: 0.72, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.82, y: 0.76, width: 18, height: 0.18 }
+    ]
+  },
+  {
+    targetSpeed: 12.0,
+    goal: { edge: "left", align: 0.46, length: 0.25, thickness: 1.5, motion: { center: 0.5, range: 0.38, speed: 1.1 } },
+    obstacles: [
+      { kind: "solid", x: 0.26, y: 0.34, width: 18, height: 0.2 },
+      { kind: "destructible", breakSpeed: 10.9, x: 0.4, y: 0.24, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.6, x: 0.55, y: 0.46, width: 18, height: 0.17 },
+      { kind: "solid", x: 0.68, y: 0.64, width: 0.14, height: 18 },
+      { kind: "destructible", breakSpeed: 11.9, x: 0.82, y: 0.44, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.42, y: 0.8, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.12, y: 0.28, width: 18, height: 0.16 },
+      { kind: "solid", x: 0.12, y: 0.72, width: 18, height: 0.16 }
+    ]
+  },
+  {
+    targetSpeed: 12.0,
+    goal: { edge: "right", align: 0.84, length: 0.24, thickness: 1.55, motion: { center: 0.5, range: 0.42, speed: 1.18 } },
+    obstacles: [
+      { kind: "destructible", breakSpeed: 10.8, x: 0.25, y: 0.25, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.38, y: 0.42, width: 0.14, height: 18 },
+      { kind: "destructible", breakSpeed: 11.4, x: 0.52, y: 0.58, width: 18, height: 0.17 },
+      { kind: "solid", x: 0.64, y: 0.28, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.8, x: 0.76, y: 0.46, width: 0.12, height: 18 },
+      { kind: "destructible", breakSpeed: 12.0, x: 0.82, y: 0.72, width: 18, height: 0.16 },
+      { kind: "solid", x: 0.32, y: 0.78, width: 0.13, height: 18 },
+      { kind: "solid", x: 0.9, y: 0.22, width: 18, height: 0.16 },
+      { kind: "solid", x: 0.9, y: 0.8, width: 18, height: 0.16 }
+    ]
+  },
+  {
+    targetSpeed: 12.0,
+    goal: { edge: "top", align: 0.92, length: 0.22, thickness: 1.6, motion: { center: 0.5, range: 0.44, speed: 1.25 } },
+    obstacles: [
+      { kind: "solid", x: 0.24, y: 0.28, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.0, x: 0.36, y: 0.46, width: 18, height: 0.16 },
+      { kind: "destructible", breakSpeed: 11.5, x: 0.5, y: 0.26, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.62, y: 0.56, width: 18, height: 0.18 },
+      { kind: "destructible", breakSpeed: 11.8, x: 0.74, y: 0.36, width: 0.12, height: 18 },
+      { kind: "destructible", breakSpeed: 12.0, x: 0.86, y: 0.66, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.46, y: 0.8, width: 0.16, height: 18 },
+      { kind: "solid", x: 0.22, y: 0.12, width: 0.13, height: 18 },
+      { kind: "solid", x: 0.78, y: 0.12, width: 0.13, height: 18 }
     ]
   }
 ];
@@ -207,6 +298,7 @@ const world = {
   graceUntil: 0,
   runStartedAt: 0,
   losses: 0,
+  hardLevel: 0,
   pausedUntil: 0,
   messageTimer: 0,
   lastTime: performance.now(),
@@ -441,6 +533,7 @@ function showOverlay(kind, title, copy, primaryText = "", secondaryText = "") {
   overlayCopyEl.textContent = copy;
   overlayFastCopyEl.textContent = "";
   overlayPlannedCopyEl.textContent = "";
+  levelSelectWrapEl.hidden = true;
   overlayActionEl.textContent = primaryText;
   overlayActionEl.hidden = !primaryText;
   overlaySecondaryEl.textContent = secondaryText;
@@ -452,26 +545,65 @@ function hideOverlay() {
   overlayEl.className = "overlay";
 }
 
-function startFastGame() {
+function selectedStartLevel() {
+  return Math.max(0, Math.min(levelConfigs.length - 1, Number(levelSelectEl.value) || 0));
+}
+
+function populateLevelSelector() {
+  levelSelectEl.replaceChildren();
+  for (let index = 0; index < levelConfigs.length; index += 1) {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = `Level ${index + 1}`;
+    levelSelectEl.append(option);
+  }
+}
+
+function attractorDecayMultiplier() {
+  return 1.5 ** world.hardLevel;
+}
+
+function beginFastRun(startIndex = 0) {
   world.playStyle = "fast";
   world.mode = "playing";
   world.losses = 0;
   world.runStartedAt = performance.now();
   hideOverlay();
   plannedControlsEl.hidden = true;
-  startLevel(0);
+  startLevel(startIndex);
   world.graceUntil = performance.now() + START_GRACE_MS;
 }
 
-function startPlannedGame() {
+function beginPlannedRun(startIndex = 0) {
   world.playStyle = "planned";
   world.mode = "planning";
   world.losses = 0;
   world.runStartedAt = performance.now();
   hideOverlay();
-  startLevel(0);
+  startLevel(startIndex);
   showMessage("PLACE UP TO 5", 1200);
   syncPlannedControls();
+}
+
+function startFastGame() {
+  world.hardLevel = 0;
+  beginFastRun(selectedStartLevel());
+}
+
+function startPlannedGame() {
+  world.hardLevel = 0;
+  beginPlannedRun(selectedStartLevel());
+}
+
+function startHarderGame() {
+  if (world.mode !== "complete") return;
+  world.hardLevel += 1;
+  if (world.playStyle === "planned") {
+    beginPlannedRun();
+  } else {
+    beginFastRun();
+  }
+  showMessage(`HARDER x${attractorDecayMultiplier().toFixed(2)}`, 1100);
 }
 
 function showStartScreen() {
@@ -484,6 +616,8 @@ function showStartScreen() {
     "Fast",
     "Planned"
   );
+  populateLevelSelector();
+  levelSelectWrapEl.hidden = false;
   overlayCopyEl.innerHTML = "Guide the particle into the goal.<br>Control direction and speed of the particle by capturing it into the orbit of <em>attractors</em>.<br>The speed of the particle is indicated by its color.<br>Obstacles and the goal advertise their robustness with their color; only if the speed of the particle matches or exceeds that of the obstacle or goal can it pass. Otherwise it is destroyed.<br>If the particle is destroyed or leaves the game screen without being caught by an attractor, the level restarts.";
   overlayFastCopyEl.textContent = "Fast mode: touch and hold anywhere on the playfield to create an attractor while the particle is already moving. Keep holding to pull the particle into orbit, then release to launch it toward the goal.";
   overlayPlannedCopyEl.textContent = "Planned mode: place up to five attractors before launch. Press Start or Enter to release the particle, then hold Space or press and hold anywhere on the playfield to turn all attractors on.";
@@ -499,8 +633,8 @@ function completeGame() {
     "complete",
     "Congratulations!",
     `You beat all ${levelConfigs.length} levels in ${timeText}. Losses: ${world.losses}.`,
-    "Fast",
-    "Planned"
+    "Start again (harder)",
+    ""
   );
 }
 
@@ -928,7 +1062,7 @@ function update(dt) {
       attractor.shrinking = false;
       attractor.radius = Math.min(MAX_ATTRACTOR_RADIUS, attractor.radius + dt * 21);
     } else if (attractor.shrinking) {
-      attractor.radius = Math.max(MIN_ATTRACTOR_RADIUS, attractor.radius - dt * ATTRACTOR_SHRINK_SPEED);
+      attractor.radius = Math.max(MIN_ATTRACTOR_RADIUS, attractor.radius - dt * ATTRACTOR_SHRINK_SPEED * attractorDecayMultiplier());
       if (attractor.radius <= MIN_ATTRACTOR_RADIUS) {
         attractor.radius = MIN_ATTRACTOR_RADIUS;
         attractor.shrinking = false;
@@ -1285,7 +1419,13 @@ canvas.addEventListener("pointerdown", addAttractor);
 canvas.addEventListener("pointermove", moveAttractor);
 canvas.addEventListener("pointerup", releaseAttractor);
 canvas.addEventListener("pointercancel", releaseAttractor);
-overlayActionEl.addEventListener("click", startFastGame);
+overlayActionEl.addEventListener("click", () => {
+  if (world.mode === "complete") {
+    startHarderGame();
+  } else {
+    startFastGame();
+  }
+});
 overlaySecondaryEl.addEventListener("click", startPlannedGame);
 launchButton.addEventListener("click", launchPlannedLevel);
 window.addEventListener("keydown", (event) => {
