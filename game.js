@@ -18,6 +18,7 @@ const MAX_PARTICLE_SPEED = 12;
 const MIN_CAPTURE_SPEED = 1.4;
 const MIN_ATTRACTOR_RADIUS = 28;
 const MAX_ATTRACTOR_RADIUS = 92;
+const ATTRACTOR_SHRINK_SPEED = MAX_ATTRACTOR_RADIUS - MIN_ATTRACTOR_RADIUS;
 const START_GRACE_MS = 1250;
 const TOUCH_DEVICE = matchMedia("(pointer: coarse)").matches;
 const MAX_RENDER_DPR = 1;
@@ -527,15 +528,19 @@ function setAttractorsActive(active) {
   }
 
   if (!active) {
-    resetAttractorSizes();
+    shrinkAttractors();
   }
 }
 
-function resetAttractorSizes() {
+function shrinkAttractors() {
   for (const attractor of attractors.values()) {
-    attractor.radius = MIN_ATTRACTOR_RADIUS;
-    attractor.pulse = 0;
+    attractor.shrinking = true;
   }
+}
+
+function isAttractorActive(attractor) {
+  if (world.playStyle === "planned") return world.attractorsActive;
+  return !attractor.shrinking;
 }
 
 function pointerPosition(event) {
@@ -580,7 +585,7 @@ function addAttractor(event) {
     id: event.pointerId,
     x: pos.x,
     y: pos.y,
-    radius: 28,
+    radius: MIN_ATTRACTOR_RADIUS,
     age: 0,
     pulse: 0
   });
@@ -609,7 +614,7 @@ function releaseAttractor(event) {
     particle.capturedBy = null;
   }
 
-  attractors.delete(event.pointerId);
+  attractor.shrinking = true;
 }
 
 function restartLevel() {
@@ -655,6 +660,7 @@ function maybeCapture() {
   if (world.playStyle === "planned" && !world.attractorsActive) return;
 
   for (const attractor of attractors.values()) {
+    if (!isAttractorActive(attractor)) continue;
     const dx = particle.x - attractor.x;
     const dy = particle.y - attractor.y;
     const distance = Math.hypot(dx, dy);
@@ -853,10 +859,20 @@ function update(dt) {
   }
 
   for (const attractor of attractors.values()) {
-    const active = world.playStyle === "fast" || world.attractorsActive;
+    const active = isAttractorActive(attractor);
     if (active) {
+      attractor.shrinking = false;
       attractor.age += dt;
       attractor.radius = Math.min(MAX_ATTRACTOR_RADIUS, attractor.radius + dt * 21);
+    } else if (attractor.shrinking) {
+      attractor.radius = Math.max(MIN_ATTRACTOR_RADIUS, attractor.radius - dt * ATTRACTOR_SHRINK_SPEED);
+      if (attractor.radius <= MIN_ATTRACTOR_RADIUS) {
+        attractor.radius = MIN_ATTRACTOR_RADIUS;
+        attractor.shrinking = false;
+        if (world.playStyle === "fast") {
+          attractors.delete(attractor.id);
+        }
+      }
     }
     attractor.pulse = Math.max(0, attractor.pulse - dt * 2.8);
   }
@@ -1010,7 +1026,7 @@ function drawSmash() {
 function drawAttractors() {
   for (const attractor of attractors.values()) {
     const captureRadius = Math.max(26, attractor.radius * 1.35);
-    const active = world.playStyle === "fast" || world.attractorsActive;
+    const active = isAttractorActive(attractor);
 
     ctx.save();
     ctx.translate(attractor.x, attractor.y);
