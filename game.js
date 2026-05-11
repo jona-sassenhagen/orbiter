@@ -229,7 +229,7 @@ const levelConfigs = [
       { kind: "solid", x: 0.3, y: 0.78, width: 18, height: 0.18 },
       { kind: "solid", x: 0.5, y: 0.22, width: 0.12, height: 18 },
       { kind: "solid", x: 0.86, y: 0.24, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.74, y: 0.09, width: 0.28, height: 0.1 }
+      { kind: "solid", x: 0.9, y: 0.12, width: 0.1, height: 0.08 }
     ]
   },
   {
