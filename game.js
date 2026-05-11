@@ -244,6 +244,13 @@ function speedColor(speed) {
   return `hsl(${hue} 86% ${light}%)`;
 }
 
+function attractorColor(attractor, alpha = 1, lightBoost = 0) {
+  const t = Math.max(0, Math.min(1, (attractor.radius - MIN_ATTRACTOR_RADIUS) / (MAX_ATTRACTOR_RADIUS - MIN_ATTRACTOR_RADIUS)));
+  const hue = 142 - t * 142;
+  const light = Math.max(48, Math.min(72, 60 + t * 4 + lightBoost));
+  return `hsl(${hue} 92% ${light}% / ${alpha})`;
+}
+
 function showMessage(text, duration = 1300) {
   messageEl.textContent = text;
   messageEl.classList.add("show");
@@ -860,9 +867,9 @@ function update(dt) {
 
   for (const attractor of attractors.values()) {
     const active = isAttractorActive(attractor);
+    attractor.age += dt;
     if (active) {
       attractor.shrinking = false;
-      attractor.age += dt;
       attractor.radius = Math.min(MAX_ATTRACTOR_RADIUS, attractor.radius + dt * 21);
     } else if (attractor.shrinking) {
       attractor.radius = Math.max(MIN_ATTRACTOR_RADIUS, attractor.radius - dt * ATTRACTOR_SHRINK_SPEED);
@@ -1027,39 +1034,57 @@ function drawAttractors() {
   for (const attractor of attractors.values()) {
     const captureRadius = Math.max(26, attractor.radius * 1.35);
     const active = isAttractorActive(attractor);
+    const phase = attractor.age * (active ? 2.7 : 1.4);
+    const breathe = 0.5 + 0.5 * Math.sin(phase * 2.1);
+    const glowColor = attractorColor(attractor, active ? 0.22 + breathe * 0.12 : 0.08);
+    const ringColor = attractorColor(attractor, active ? 0.44 : 0.2, active ? 4 : -5);
+    const coreColor = attractorColor(attractor, active ? 0.2 : 0.09);
+    const arcColor = attractorColor(attractor, active ? 0.95 : 0.36, 8);
 
     ctx.save();
     ctx.translate(attractor.x, attractor.y);
     ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha = active ? 0.1 + attractor.pulse * 0.08 : 0.04;
-    ctx.fillStyle = "rgba(98, 227, 140, 0.32)";
-    ctx.beginPath();
-    ctx.arc(0, 0, captureRadius, 0, Math.PI * 2);
-    ctx.fill();
     ctx.globalAlpha = 1;
+    ctx.fillStyle = glowColor;
+    ctx.beginPath();
+    ctx.arc(0, 0, captureRadius + breathe * 4, 0, Math.PI * 2);
+    ctx.fill();
 
-    ctx.strokeStyle = active ? "rgba(98, 227, 140, 0.34)" : "rgba(236, 247, 239, 0.28)";
+    ctx.strokeStyle = ringColor;
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 10]);
+    ctx.lineDashOffset = -phase * 16;
     ctx.beginPath();
     ctx.arc(0, 0, captureRadius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
 
-    ctx.fillStyle = active ? "rgba(98, 227, 140, 0.16)" : "rgba(236, 247, 239, 0.08)";
+    ctx.strokeStyle = arcColor;
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    for (let i = 0; i < 3; i += 1) {
+      const start = phase + i * Math.PI * 2 / 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, attractor.radius + 3, start, start + 0.54 + breathe * 0.14);
+      ctx.stroke();
+    }
+    ctx.lineCap = "butt";
+
+    ctx.fillStyle = coreColor;
     ctx.beginPath();
     ctx.arc(0, 0, attractor.radius, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(236, 247, 239, 0.9)";
+    ctx.strokeStyle = attractorColor(attractor, 0.78 + attractor.pulse * 0.16, 8);
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(0, 0, attractor.radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = "#ecf7ef";
+    ctx.fillStyle = attractorColor(attractor, 1, 10);
     ctx.beginPath();
-    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+    ctx.arc(0, 0, 3 + breathe * 1.2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
