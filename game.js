@@ -14,6 +14,7 @@ const levelSelectWrapEl = document.getElementById("level-select-wrap");
 const levelSelectEl = document.getElementById("level-select");
 const plannedControlsEl = document.getElementById("planned-controls");
 const launchButton = document.getElementById("launch");
+const radioToggleEl = document.getElementById("radio-toggle");
 
 const BACKGROUND_COUNT = 7;
 const MAX_PARTICLE_SPEED = 12;
@@ -24,6 +25,24 @@ const ATTRACTOR_SHRINK_SPEED = MAX_ATTRACTOR_RADIUS - MIN_ATTRACTOR_RADIUS;
 const START_GRACE_MS = 1250;
 const TOUCH_DEVICE = matchMedia("(pointer: coarse)").matches;
 const MAX_RENDER_DPR = 1;
+const RADIO_TRACKS = [
+  {
+    title: "Apogee",
+    src: "https://raw.githubusercontent.com/jona-sassenhagen/kessleract/main/music/Kessleract%2BOST%2B-%2BApogee.MP3"
+  },
+  {
+    title: "Dark Side Passage",
+    src: "https://raw.githubusercontent.com/jona-sassenhagen/kessleract/main/music/Kessleract%2BOST%2B-%2BDark%2BSide%2BPassage.MP3"
+  },
+  {
+    title: "Debris Forecast",
+    src: "https://raw.githubusercontent.com/jona-sassenhagen/kessleract/main/music/Kessleract%2BOST%2B-%2BDebris%2BForecast.MP3"
+  },
+  {
+    title: "Low Earth Window",
+    src: "https://raw.githubusercontent.com/jona-sassenhagen/kessleract/main/music/Kessleract%2BOST%2B-%2BLow%2BEarth%2BWindow.MP3"
+  }
+];
 
 const levelConfigs = [
   { targetSpeed: 4.2, goal: { edge: "bottom", align: 0.76, length: 1.18 }, obstacles: [] },
@@ -355,6 +374,13 @@ const particle = {
   speed: 2.03
 };
 
+const radio = {
+  audio: new Audio(),
+  trackIndex: 0,
+  enabled: false,
+  started: false
+};
+
 const goal = {
   x: 0,
   y: 0,
@@ -582,6 +608,68 @@ function hideOverlay() {
   overlayEl.className = "overlay";
 }
 
+function setupRadio() {
+  radio.audio.volume = 0.34;
+  radio.audio.preload = "none";
+  radio.audio.addEventListener("ended", playNextRadioTrack);
+  radio.audio.addEventListener("error", playNextRadioTrack);
+  updateRadioLabel();
+}
+
+function updateRadioLabel() {
+  const track = RADIO_TRACKS[radio.trackIndex];
+  radioToggleEl.setAttribute("aria-pressed", String(radio.enabled));
+  radioToggleEl.querySelector("span").textContent = radio.enabled ? `Radio: ${track.title}` : "Radio off";
+}
+
+function loadRadioTrack(index) {
+  radio.trackIndex = (index + RADIO_TRACKS.length) % RADIO_TRACKS.length;
+  radio.audio.src = RADIO_TRACKS[radio.trackIndex].src;
+  updateRadioLabel();
+}
+
+function playRadio() {
+  if (!radio.audio.src) {
+    loadRadioTrack(radio.trackIndex);
+  }
+  radio.enabled = true;
+  radio.started = true;
+  updateRadioLabel();
+  radio.audio.play().catch(() => {
+    radio.enabled = false;
+    updateRadioLabel();
+  });
+}
+
+function stopRadio() {
+  radio.enabled = false;
+  radio.audio.pause();
+  updateRadioLabel();
+}
+
+function toggleRadio() {
+  if (radio.enabled) {
+    stopRadio();
+  } else {
+    playRadio();
+  }
+}
+
+function playNextRadioTrack() {
+  if (!radio.enabled) return;
+  loadRadioTrack(radio.trackIndex + 1);
+  radio.audio.play().catch(() => {
+    radio.enabled = false;
+    updateRadioLabel();
+  });
+}
+
+function startRadioAfterUserGesture() {
+  if (!radio.started) {
+    playRadio();
+  }
+}
+
 function selectedStartLevel() {
   return Math.max(0, Math.min(levelConfigs.length - 1, Number(levelSelectEl.value) || 0));
 }
@@ -623,17 +711,20 @@ function beginPlannedRun(startIndex = 0) {
 }
 
 function startFastGame() {
+  startRadioAfterUserGesture();
   world.hardLevel = 0;
   beginFastRun(selectedStartLevel());
 }
 
 function startPlannedGame() {
+  startRadioAfterUserGesture();
   world.hardLevel = 0;
   beginPlannedRun(selectedStartLevel());
 }
 
 function startHarderGame() {
   if (world.mode !== "complete") return;
+  startRadioAfterUserGesture();
   world.hardLevel += 1;
   if (world.playStyle === "planned") {
     beginPlannedRun();
@@ -1512,6 +1603,7 @@ overlayActionEl.addEventListener("click", () => {
 });
 overlaySecondaryEl.addEventListener("click", startPlannedGame);
 launchButton.addEventListener("click", launchPlannedLevel);
+radioToggleEl.addEventListener("click", toggleRadio);
 window.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     if (world.spaceDown) return;
@@ -1540,6 +1632,7 @@ window.addEventListener("keyup", (event) => {
   }
 });
 
+setupRadio();
 resize();
 startLevel(0, null);
 showStartScreen();

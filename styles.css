@@ -323,6 +323,39 @@ body {
   backdrop-filter: blur(12px);
 }
 
+.radio-toggle {
+  position: absolute;
+  right: max(10px, env(safe-area-inset-right));
+  top: max(10px, env(safe-area-inset-top));
+  z-index: 4;
+  min-width: 104px;
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 1px solid rgba(236, 247, 239, 0.24);
+  border-radius: 8px;
+  background: rgba(7, 17, 13, 0.62);
+  color: var(--ink);
+  font: 900 13px/1 "Avenir Next Condensed", "DIN Condensed", "Bahnschrift", sans-serif;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+}
+
+.radio-toggle[aria-pressed="true"] {
+  border-color: rgba(98, 227, 140, 0.44);
+  background: rgba(98, 227, 140, 0.16);
+}
+
+.radio-toggle:active {
+  transform: translateY(1px);
+}
+
+.radio-toggle span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 560px) {
   .readouts {
     grid-template-columns: 48px;
@@ -347,5 +380,13 @@ body {
 
   .mode-choice {
     min-height: 0;
+  }
+
+  .radio-toggle {
+    min-width: 92px;
+    max-width: 42vw;
+    min-height: 34px;
+    padding: 7px 9px;
+    font-size: 12px;
   }
 }
