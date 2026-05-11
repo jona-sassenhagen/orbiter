@@ -167,6 +167,28 @@ body {
   pointer-events: none;
 }
 
+.overlay.loss .overlay-panel {
+  width: auto;
+  max-width: min(420px, 100%);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  text-align: center;
+}
+
+.overlay.loss .overlay-actions {
+  display: none;
+}
+
+.overlay.loss h1 {
+  text-shadow: 0 0 18px rgba(236, 247, 239, 0.52);
+}
+
+.overlay.loss p {
+  text-shadow: 0 0 14px rgba(98, 227, 140, 0.46);
+}
+
 .overlay-panel {
   width: min(620px, 100%);
   max-height: calc(100dvh - 44px);
