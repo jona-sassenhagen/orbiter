@@ -323,11 +323,17 @@ body {
   backdrop-filter: blur(12px);
 }
 
-.radio-toggle {
+.radio-controls {
   position: absolute;
   right: max(10px, env(safe-area-inset-right));
   top: max(10px, env(safe-area-inset-top));
   z-index: 4;
+  display: flex;
+  gap: 6px;
+}
+
+.radio-toggle,
+.radio-next {
   min-width: 104px;
   min-height: 38px;
   padding: 8px 11px;
@@ -340,12 +346,18 @@ body {
   backdrop-filter: blur(12px);
 }
 
+.radio-next {
+  min-width: 42px;
+  padding-inline: 10px;
+}
+
 .radio-toggle[aria-pressed="true"] {
   border-color: rgba(98, 227, 140, 0.44);
   background: rgba(98, 227, 140, 0.16);
 }
 
-.radio-toggle:active {
+.radio-toggle:active,
+.radio-next:active {
   transform: translateY(1px);
 }
 
@@ -387,6 +399,13 @@ body {
     max-width: 42vw;
     min-height: 34px;
     padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .radio-next {
+    min-width: 38px;
+    min-height: 34px;
+    padding: 7px 8px;
     font-size: 12px;
   }
 }

@@ -15,6 +15,7 @@ const levelSelectEl = document.getElementById("level-select");
 const plannedControlsEl = document.getElementById("planned-controls");
 const launchButton = document.getElementById("launch");
 const radioToggleEl = document.getElementById("radio-toggle");
+const radioNextEl = document.getElementById("radio-next");
 
 const BACKGROUND_COUNT = 7;
 const MAX_PARTICLE_SPEED = 12;
@@ -666,10 +667,13 @@ function toggleRadio() {
 }
 
 function playNextRadioTrack() {
-  if (!radio.enabled) return;
+  const wasEnabled = radio.enabled;
   loadRadioTrack(radio.trackIndex + 1);
+  radio.started = true;
+  radio.enabled = true;
+  updateRadioLabel();
   radio.audio.play().catch(() => {
-    radio.enabled = false;
+    radio.enabled = wasEnabled;
     updateRadioLabel();
   });
 }
@@ -1685,6 +1689,7 @@ overlayActionEl.addEventListener("click", () => {
 overlaySecondaryEl.addEventListener("click", startPlannedGame);
 launchButton.addEventListener("click", launchPlannedLevel);
 radioToggleEl.addEventListener("click", toggleRadio);
+radioNextEl.addEventListener("click", playNextRadioTrack);
 window.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     if (world.spaceDown) return;
