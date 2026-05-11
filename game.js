@@ -499,6 +499,10 @@ function syncPlannedControls() {
 
 function launchPlannedLevel() {
   if (world.playStyle !== "planned" || world.mode !== "planning") return;
+  if (attractors.size === 0) {
+    showMessage("PLACE ATTRACTOR", 900);
+    return;
+  }
   world.mode = "playing";
   world.attractorsActive = false;
   world.graceUntil = performance.now() + START_GRACE_MS;
