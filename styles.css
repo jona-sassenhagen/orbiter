@@ -329,9 +329,12 @@ body {
   top: max(10px, env(safe-area-inset-top));
   z-index: 4;
   display: flex;
+  max-width: calc(100vw - 20px - env(safe-area-inset-left) - env(safe-area-inset-right));
   gap: 6px;
+  justify-content: flex-end;
 }
 
+.sfx-toggle,
 .radio-toggle,
 .radio-next {
   min-width: 104px;
@@ -346,9 +349,18 @@ body {
   backdrop-filter: blur(12px);
 }
 
+.sfx-toggle {
+  min-width: 72px;
+}
+
 .radio-next {
   min-width: 42px;
   padding-inline: 10px;
+}
+
+.sfx-toggle[aria-pressed="true"] {
+  border-color: rgba(255, 79, 100, 0.42);
+  background: rgba(255, 79, 100, 0.14);
 }
 
 .radio-toggle[aria-pressed="true"] {
@@ -356,11 +368,13 @@ body {
   background: rgba(98, 227, 140, 0.16);
 }
 
+.sfx-toggle:active,
 .radio-toggle:active,
 .radio-next:active {
   transform: translateY(1px);
 }
 
+.sfx-toggle span,
 .radio-toggle span {
   display: block;
   overflow: hidden;
@@ -394,12 +408,18 @@ body {
     min-height: 0;
   }
 
+  .sfx-toggle,
   .radio-toggle {
     min-width: 92px;
     max-width: 42vw;
     min-height: 34px;
     padding: 7px 9px;
     font-size: 12px;
+  }
+
+  .sfx-toggle {
+    min-width: 68px;
+    max-width: 24vw;
   }
 
   .radio-next {

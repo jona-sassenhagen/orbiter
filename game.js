@@ -14,6 +14,7 @@ const levelSelectWrapEl = document.getElementById("level-select-wrap");
 const levelSelectEl = document.getElementById("level-select");
 const plannedControlsEl = document.getElementById("planned-controls");
 const launchButton = document.getElementById("launch");
+const sfxToggleEl = document.getElementById("sfx-toggle");
 const radioToggleEl = document.getElementById("radio-toggle");
 const radioNextEl = document.getElementById("radio-next");
 
@@ -26,6 +27,7 @@ const ATTRACTOR_SHRINK_SPEED = MAX_ATTRACTOR_RADIUS - MIN_ATTRACTOR_RADIUS;
 const START_GRACE_MS = 1250;
 const TOUCH_DEVICE = matchMedia("(pointer: coarse)").matches;
 const MAX_RENDER_DPR = 1;
+const SFX_STORAGE_KEY = "orbiter:sfx-muted";
 const RADIO_TRACKS = [
   {
     title: "Apogee",
@@ -390,6 +392,13 @@ const radio = {
   started: false
 };
 
+const sfx = {
+  context: null,
+  master: null,
+  muted: loadSfxMuted(),
+  lastPlayedAt: 0
+};
+
 const goal = {
   x: 0,
   y: 0,
@@ -426,6 +435,162 @@ function showMessage(text, duration = 1300) {
   messageEl.textContent = text;
   messageEl.classList.add("show");
   world.messageTimer = duration;
+}
+
+function loadSfxMuted() {
+  try {
+    return localStorage.getItem(SFX_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function storeSfxMuted() {
+  try {
+    localStorage.setItem(SFX_STORAGE_KEY, String(sfx.muted));
+  } catch {
+    // Ignore storage failures; the current session state still works.
+  }
+}
+
+function syncSfxToggle() {
+  sfxToggleEl.setAttribute("aria-pressed", String(sfx.muted));
+  sfxToggleEl.querySelector("span").textContent = sfx.muted ? "SFX muted" : "SFX on";
+}
+
+function setupSfx() {
+  syncSfxToggle();
+}
+
+function ensureSfxContext() {
+  if (sfx.muted) return null;
+
+  if (!sfx.context) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+
+    sfx.context = new AudioContextClass();
+    sfx.master = sfx.context.createGain();
+    sfx.master.gain.value = 0.42;
+    sfx.master.connect(sfx.context.destination);
+  }
+
+  if (sfx.context.state === "suspended") {
+    sfx.context.resume().catch(() => {});
+  }
+
+  return sfx.context;
+}
+
+function toggleSfx() {
+  sfx.muted = !sfx.muted;
+  storeSfxMuted();
+  syncSfxToggle();
+  if (!sfx.muted) {
+    playSfx("toggle");
+  }
+}
+
+function unlockSfx() {
+  ensureSfxContext();
+}
+
+function playTone(startFrequency, endFrequency, duration, type, volume, delay = 0) {
+  const audioContext = sfx.context;
+  if (!audioContext || !sfx.master) return;
+
+  const now = audioContext.currentTime + delay;
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(startFrequency, now);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(24, endFrequency), now + duration);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), now + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  oscillator.connect(gain);
+  gain.connect(sfx.master);
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    gain.disconnect();
+  };
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.02);
+}
+
+function playNoise(duration, volume, filterType, frequency, delay = 0) {
+  const audioContext = sfx.context;
+  if (!audioContext || !sfx.master) return;
+
+  const now = audioContext.currentTime + delay;
+  const sampleCount = Math.max(1, Math.floor(audioContext.sampleRate * duration));
+  const buffer = audioContext.createBuffer(1, sampleCount, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let index = 0; index < sampleCount; index += 1) {
+    data[index] = Math.random() * 2 - 1;
+  }
+
+  const source = audioContext.createBufferSource();
+  const filter = audioContext.createBiquadFilter();
+  const gain = audioContext.createGain();
+
+  source.buffer = buffer;
+  filter.type = filterType;
+  filter.frequency.setValueAtTime(frequency, now);
+  gain.gain.setValueAtTime(Math.max(0.0001, volume), now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(sfx.master);
+  source.onended = () => {
+    source.disconnect();
+    filter.disconnect();
+    gain.disconnect();
+  };
+  source.start(now);
+  source.stop(now + duration + 0.02);
+}
+
+function playSfx(type, intensity = 1) {
+  const audioContext = ensureSfxContext();
+  if (!audioContext) return;
+
+  const now = audioContext.currentTime;
+  if (now - sfx.lastPlayedAt < 0.035) return;
+  sfx.lastPlayedAt = now;
+
+  const volume = Math.max(0.55, Math.min(1.25, intensity));
+
+  if (type === "obstacle-break") {
+    playNoise(0.14, 0.14 * volume, "highpass", 900);
+    playTone(720, 1600, 0.12, "triangle", 0.075 * volume);
+    playTone(1260, 560, 0.18, "sine", 0.045 * volume, 0.025);
+  } else if (type === "speed-crash") {
+    playNoise(0.18, 0.16 * volume, "bandpass", 700);
+    playTone(320, 110, 0.2, "sawtooth", 0.08 * volume);
+    playTone(125, 58, 0.24, "triangle", 0.09 * volume);
+  } else if (type === "solid-crash") {
+    playNoise(0.24, 0.19 * volume, "lowpass", 520);
+    playTone(105, 42, 0.28, "sawtooth", 0.12 * volume);
+    playTone(230, 150, 0.12, "square", 0.035 * volume);
+  } else if (type === "goal-crash") {
+    playNoise(0.2, 0.13 * volume, "bandpass", 540);
+    playTone(260, 74, 0.34, "sawtooth", 0.105 * volume);
+  } else if (type === "goal-smash") {
+    playNoise(0.3, 0.18 * volume, "highpass", 700);
+    playTone(280, 720, 0.24, "triangle", 0.09 * volume);
+    playTone(540, 1120, 0.22, "sine", 0.07 * volume, 0.06);
+    playTone(118, 70, 0.28, "sawtooth", 0.08 * volume);
+  } else if (type === "lost") {
+    playNoise(0.16, 0.07 * volume, "lowpass", 300);
+    playTone(260, 68, 0.44, "triangle", 0.08 * volume);
+  } else if (type === "toggle") {
+    playTone(520, 780, 0.08, "sine", 0.045);
+  }
 }
 
 function resize() {
@@ -996,8 +1161,11 @@ function releaseAttractor(event) {
   updateAttractorPreview(event);
 }
 
-function restartLevel(delay = 900) {
+function restartLevel(delay = 900, soundType = "lost") {
   if (world.mode !== "playing" || world.won || world.transitioning || performance.now() < world.pausedUntil) return;
+  if (soundType) {
+    playSfx(soundType, particle.speed / MAX_PARTICLE_SPEED + 0.7);
+  }
   world.mode = "lost";
   world.losses += 1;
   world.pausedUntil = performance.now() + 650;
@@ -1121,6 +1289,7 @@ function smashGoal() {
     }
   }
 
+  playSfx("goal-smash", particle.speed / MAX_PARTICLE_SPEED + 0.8);
   destroyParticleAt({ x: particle.x, y: particle.y }, color, 18);
   world.won = true;
   world.transitioning = true;
@@ -1184,6 +1353,8 @@ function crashIntoObstacle(obstacle) {
     : "rgba(232, 242, 236, 0.92)";
   const impactAngle = Math.atan2(particle.vy, particle.vx);
 
+  playSfx(obstacle.kind === "destructible" ? "speed-crash" : "solid-crash", particle.speed / MAX_PARTICLE_SPEED + 0.75);
+
   for (let index = 0; index < 28; index += 1) {
     const spread = (Math.random() - 0.5) * Math.PI * 1.35;
     const angle = impactAngle + Math.PI + spread;
@@ -1231,6 +1402,7 @@ function crashIntoGoal() {
     x: Math.max(goal.x, Math.min(particle.x, goal.x + goal.width)),
     y: Math.max(goal.y, Math.min(particle.y, goal.y + goal.height))
   };
+  playSfx("goal-crash", particle.speed / MAX_PARTICLE_SPEED + 0.75);
   destroyParticleAt(impact, speedColor(level.targetSpeed), 34);
   particleTrail.length = 0;
   showMessage("CRASH", 520);
@@ -1264,6 +1436,7 @@ function destroyParticleAt(impact, barrierColor, count) {
 }
 
 function breakObstacle(obstacle) {
+  playSfx("obstacle-break", particle.speed / MAX_PARTICLE_SPEED + 0.75);
   smashObstacle(obstacle);
   level.obstacles = level.obstacles.filter((candidate) => candidate !== obstacle);
 
@@ -1394,7 +1567,7 @@ function update(dt) {
       smashGoal();
     } else if (!inGrace) {
       crashIntoGoal();
-      restartLevel();
+      restartLevel(900, null);
     }
     return;
   }
@@ -1406,11 +1579,11 @@ function update(dt) {
         breakObstacle(obstacle);
       } else {
         crashIntoObstacle(obstacle);
-        restartLevel(1100);
+        restartLevel(1100, null);
       }
     } else {
       crashIntoObstacle(obstacle);
-      restartLevel(1100);
+      restartLevel(1100, null);
     }
     return;
   }
@@ -1798,6 +1971,7 @@ function loop(now) {
 }
 
 window.addEventListener("resize", resize);
+window.addEventListener("pointerdown", unlockSfx, { passive: true });
 canvas.addEventListener("pointerdown", addAttractor);
 canvas.addEventListener("pointermove", moveAttractor);
 canvas.addEventListener("pointerenter", updateAttractorPreview);
@@ -1813,9 +1987,12 @@ overlayActionEl.addEventListener("click", () => {
 });
 overlaySecondaryEl.addEventListener("click", startPlannedGame);
 launchButton.addEventListener("click", launchPlannedLevel);
+sfxToggleEl.addEventListener("click", toggleSfx);
 radioToggleEl.addEventListener("click", toggleRadio);
 radioNextEl.addEventListener("click", playNextRadioTrack);
 window.addEventListener("keydown", (event) => {
+  unlockSfx();
+
   if (event.code === "Space") {
     if (world.spaceDown) return;
     world.spaceDown = true;
@@ -1844,6 +2021,7 @@ window.addEventListener("keyup", (event) => {
 });
 
 setupRadio();
+setupSfx();
 resize();
 startLevel(0, null);
 showStartScreen();
