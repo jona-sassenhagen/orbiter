@@ -169,6 +169,8 @@ body {
 
 .overlay-panel {
   width: min(620px, 100%);
+  max-height: calc(100dvh - 44px);
+  overflow: auto;
   padding: 18px 20px;
   border: 1px solid rgba(236, 247, 239, 0.22);
   border-radius: 8px;
@@ -189,6 +191,11 @@ body {
   font-size: clamp(16px, 4vw, 20px);
   font-weight: 800;
   line-height: 1.2;
+}
+
+.overlay.start #overlay-copy {
+  font-size: clamp(14px, 2.8vw, 18px);
+  line-height: 1.28;
 }
 
 .overlay-actions {

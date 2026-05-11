@@ -471,12 +471,13 @@ function showStartScreen() {
   showOverlay(
     "start",
     "Orbiter",
-    "Guide the particle into the glowing goal. The particle must be at least as fast as the goal color: green is slow, yellow is faster, red is fastest. Attractors capture the particle into orbit, grow while active, and release it at higher speed when turned off. Match obstacle colors too: destructible obstacles only break when the particle is fast enough.",
+    "Guide the particle into the goal.",
     "Fast",
     "Planned"
   );
-  overlayFastCopyEl.textContent = "Fast mode: touch and hold anywhere to create live attractors while the particle is already moving. Release to shoot away.";
-  overlayPlannedCopyEl.textContent = "Planned mode: place up to five attractors before launch. Press Start or Enter, then hold Space or press anywhere to turn all attractors on.";
+  overlayCopyEl.innerHTML = "Guide the particle into the goal.<br>Control direction and speed of the particle by capturing it into the orbit of <em>attractors</em>.<br>The speed of the particle is indicated by its color.<br>Obstacles and the goal advertise their robustness with their color; only if the speed of the particle matches or exceeds that of the obstacle or goal can it pass. Otherwise it is destroyed.<br>If the particle is destroyed or leaves the game screen without being caught by an attractor, the level restarts.";
+  overlayFastCopyEl.textContent = "Fast mode: touch and hold anywhere on the playfield to create an attractor while the particle is already moving. Keep holding to pull the particle into orbit, then release to launch it toward the goal.";
+  overlayPlannedCopyEl.textContent = "Planned mode: place up to five attractors before launch. Press Start or Enter to release the particle, then hold Space or press and hold anywhere on the playfield to turn all attractors on.";
 }
 
 function completeGame() {
