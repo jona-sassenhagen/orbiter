@@ -6,6 +6,8 @@ const shellEl = document.querySelector(".shell");
 const overlayEl = document.getElementById("overlay");
 const overlayTitleEl = document.getElementById("overlay-title");
 const overlayCopyEl = document.getElementById("overlay-copy");
+const overlayFastCopyEl = document.getElementById("overlay-fast-copy");
+const overlayPlannedCopyEl = document.getElementById("overlay-planned-copy");
 const overlayActionEl = document.getElementById("overlay-action");
 const overlaySecondaryEl = document.getElementById("overlay-secondary");
 const plannedControlsEl = document.getElementById("planned-controls");
@@ -428,6 +430,8 @@ function showOverlay(kind, title, copy, primaryText = "", secondaryText = "") {
   overlayEl.className = `overlay show ${kind}`;
   overlayTitleEl.textContent = title;
   overlayCopyEl.textContent = copy;
+  overlayFastCopyEl.textContent = "";
+  overlayPlannedCopyEl.textContent = "";
   overlayActionEl.textContent = primaryText;
   overlayActionEl.hidden = !primaryText;
   overlaySecondaryEl.textContent = secondaryText;
@@ -467,10 +471,12 @@ function showStartScreen() {
   showOverlay(
     "start",
     "Orbiter",
-    "Fast mode: touch and hold to create live attractors as the particle moves. Planned mode: place up to five attractors, press Start or Enter to launch, then hold Space or press anywhere on the playfield to turn all attractors on.",
+    "Guide the particle into the glowing goal. The particle must be at least as fast as the goal color: green is slow, yellow is faster, red is fastest. Attractors capture the particle into orbit, grow while active, and release it at higher speed when turned off. Match obstacle colors too: destructible obstacles only break when the particle is fast enough.",
     "Fast",
     "Planned"
   );
+  overlayFastCopyEl.textContent = "Fast mode: touch and hold anywhere to create live attractors while the particle is already moving. Release to shoot away.";
+  overlayPlannedCopyEl.textContent = "Planned mode: place up to five attractors before launch. Press Start or Enter, then hold Space or press anywhere to turn all attractors on.";
 }
 
 function completeGame() {

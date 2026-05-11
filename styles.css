@@ -168,7 +168,7 @@ body {
 }
 
 .overlay-panel {
-  width: min(420px, 100%);
+  width: min(620px, 100%);
   padding: 18px 20px;
   border: 1px solid rgba(236, 247, 239, 0.22);
   border-radius: 8px;
@@ -192,10 +192,29 @@ body {
 }
 
 .overlay-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 18px;
+}
+
+.mode-choice {
+  display: flex;
+  min-height: 148px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(236, 247, 239, 0.12);
+  border-radius: 8px;
+  background: rgba(236, 247, 239, 0.05);
+}
+
+.mode-choice p {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(14px, 3vw, 17px);
+  line-height: 1.2;
 }
 
 .overlay button,
@@ -261,5 +280,13 @@ body {
 
   .overlay-panel {
     padding: 16px;
+  }
+
+  .overlay-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-choice {
+    min-height: 0;
   }
 }
