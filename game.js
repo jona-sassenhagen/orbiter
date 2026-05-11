@@ -265,34 +265,34 @@ const levelConfigs = [
   },
   {
     targetSpeed: 12.0,
-    goal: { edge: "top", align: 0.18, length: 0.5, thickness: 1.45 },
+    goal: { edge: "top", align: 0.42, length: 0.46, thickness: 1.45 },
     obstacles: [
-      { kind: "destructible", breakSpeed: 8.6, x: 0.26, y: 0.27, width: 0.13, height: 18 },
-      { kind: "solid", x: 0.42, y: 0.42, width: 18, height: 0.22 },
-      { kind: "destructible", breakSpeed: 11.4, x: 0.58, y: 0.3, width: 0.13, height: 18 },
-      { kind: "solid", x: 0.72, y: 0.5, width: 0.15, height: 18 },
-      { kind: "destructible", breakSpeed: 11.8, x: 0.52, y: 0.72, width: 18, height: 0.18 },
-      { kind: "destructible", breakSpeed: 12.0, x: 0.34, y: 0.62, width: 0.12, height: 18 },
-      { kind: "destructible", breakSpeed: 11.2, x: 0.76, y: 0.26, width: 18, height: 0.16 },
+      { kind: "destructible", breakSpeed: 8.6, x: 0.28, y: 0.3, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.44, y: 0.42, width: 18, height: 0.24 },
+      { kind: "destructible", breakSpeed: 11.4, x: 0.58, y: 0.28, width: 0.12, height: 18 },
+      { kind: "solid", x: 0.7, y: 0.54, width: 0.14, height: 18 },
+      { kind: "destructible", breakSpeed: 11.8, x: 0.5, y: 0.68, width: 0.24, height: 18 },
+      { kind: "destructible", breakSpeed: 12.0, x: 0.34, y: 0.58, width: 0.1, height: 18 },
+      { kind: "destructible", breakSpeed: 11.2, x: 0.72, y: 0.34, width: 18, height: 0.14 },
       { kind: "solid", x: 0.82, y: 0.76, width: 18, height: 0.18 },
-      { kind: "solid", x: 0.16, y: 0.22, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.48, y: 0.22, width: 0.12, height: 18 }
+      { kind: "solid", x: 0.3, y: 0.18, width: 0.22, height: 0.09 },
+      { kind: "solid", x: 0.62, y: 0.18, width: 0.28, height: 0.09 }
     ]
   },
   {
     targetSpeed: 12.0,
-    goal: { edge: "bottom", align: 0.32, length: 0.82, thickness: 1.5 },
+    goal: { edge: "bottom", align: 0.66, length: 0.66, thickness: 1.5 },
     obstacles: [
-      { kind: "solid", x: 0.26, y: 0.34, width: 18, height: 0.2 },
-      { kind: "destructible", breakSpeed: 10.9, x: 0.36, y: 0.22, width: 0.13, height: 18 },
-      { kind: "destructible", breakSpeed: 11.6, x: 0.42, y: 0.46, width: 18, height: 0.17 },
-      { kind: "solid", x: 0.32, y: 0.62, width: 0.14, height: 18 },
-      { kind: "destructible", breakSpeed: 11.9, x: 0.24, y: 0.52, width: 0.12, height: 18 },
-      { kind: "solid", x: 0.55, y: 0.72, width: 0.12, height: 0.18 },
-      { kind: "destructible", breakSpeed: 11.3, x: 0.2, y: 0.4, width: 0.11, height: 18 },
-      { kind: "destructible", breakSpeed: 12.0, x: 0.36, y: 0.58, width: 18, height: 0.15 },
-      { kind: "solid", x: 0.2, y: 0.84, width: 0.26, height: 0.11 },
-      { kind: "solid", x: 0.62, y: 0.84, width: 0.42, height: 0.11 }
+      { kind: "solid", x: 0.28, y: 0.34, width: 18, height: 0.2 },
+      { kind: "destructible", breakSpeed: 10.9, x: 0.36, y: 0.28, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.6, x: 0.46, y: 0.5, width: 18, height: 0.16 },
+      { kind: "solid", x: 0.48, y: 0.66, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.9, x: 0.62, y: 0.58, width: 0.2, height: 18 },
+      { kind: "solid", x: 0.76, y: 0.46, width: 0.13, height: 18 },
+      { kind: "destructible", breakSpeed: 11.3, x: 0.72, y: 0.74, width: 18, height: 0.14 },
+      { kind: "destructible", breakSpeed: 12.0, x: 0.36, y: 0.8, width: 0.18, height: 18 },
+      { kind: "solid", x: 0.34, y: 0.86, width: 0.28, height: 0.09 },
+      { kind: "solid", x: 0.82, y: 0.86, width: 0.24, height: 0.09 }
     ]
   },
   {
