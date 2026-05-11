@@ -199,6 +199,7 @@ const world = {
   playStyle: "fast",
   attractorsActive: false,
   spaceDown: false,
+  enterDown: false,
   pendingRestartAt: 0,
   graceUntil: 0,
   runStartedAt: 0,
@@ -517,6 +518,17 @@ function setAttractorsActive(active) {
     particle.vy = Math.sin(tangent) * particle.speed;
     particle.capturedBy = null;
   }
+
+  if (!active) {
+    resetAttractorSizes();
+  }
+}
+
+function resetAttractorSizes() {
+  for (const attractor of attractors.values()) {
+    attractor.radius = MIN_ATTRACTOR_RADIUS;
+    attractor.pulse = 0;
+  }
 }
 
 function pointerPosition(event) {
@@ -703,7 +715,15 @@ function advanceAfterSmash() {
   if (level.index + 1 >= levelConfigs.length) {
     completeGame();
   } else {
-    startLevel(level.index + 1);
+    startLevel(level.index + 1, null);
+    if (world.playStyle === "planned") {
+      world.mode = "planning";
+      showMessage("PLACE UP TO 5", 900);
+      syncPlannedControls();
+    } else {
+      world.graceUntil = performance.now() + START_GRACE_MS;
+      showMessage(`LEVEL ${level.index + 1}`, 900);
+    }
   }
 }
 
@@ -1179,16 +1199,31 @@ activateButton.addEventListener("pointerup", () => setAttractorsActive(false));
 activateButton.addEventListener("pointercancel", () => setAttractorsActive(false));
 activateButton.addEventListener("pointerleave", () => setAttractorsActive(false));
 window.addEventListener("keydown", (event) => {
-  if (event.code !== "Space" || world.spaceDown) return;
-  world.spaceDown = true;
-  event.preventDefault();
-  setAttractorsActive(true);
+  if (event.code === "Space") {
+    if (world.spaceDown) return;
+    world.spaceDown = true;
+    event.preventDefault();
+    setAttractorsActive(true);
+  }
+
+  if (event.code === "Enter") {
+    if (world.enterDown) return;
+    world.enterDown = true;
+    event.preventDefault();
+    launchPlannedLevel();
+  }
 });
 window.addEventListener("keyup", (event) => {
-  if (event.code !== "Space") return;
-  world.spaceDown = false;
-  event.preventDefault();
-  setAttractorsActive(false);
+  if (event.code === "Space") {
+    world.spaceDown = false;
+    event.preventDefault();
+    setAttractorsActive(false);
+  }
+
+  if (event.code === "Enter") {
+    world.enterDown = false;
+    event.preventDefault();
+  }
 });
 
 resize();
