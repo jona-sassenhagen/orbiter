@@ -130,12 +130,13 @@ const levelConfigs = [
     ]
   },
   {
-    targetSpeed: 10.2,
-    goal: { edge: "right", align: 0.78, length: 0.4 },
+    targetSpeed: 10.6,
+    goal: { edge: "right", align: 0.78, length: 0.3, motion: { center: 0.58, range: 0.26, speed: 0.7 } },
     obstacles: [
       { kind: "solid", x: 0.4, y: 0.32, width: 18, height: 0.24 },
       { kind: "destructible", breakSpeed: 8.1, x: 0.54, y: 0.48, width: 0.16, height: 18 },
-      { kind: "solid", x: 0.72, y: 0.68, width: 0.18, height: 18 }
+      { kind: "destructible", breakSpeed: 9.8, x: 0.66, y: 0.62, width: 18, height: 0.19 },
+      { kind: "solid", x: 0.76, y: 0.72, width: 0.16, height: 18 }
     ]
   },
   {
