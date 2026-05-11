@@ -361,7 +361,12 @@ const world = {
   messageTimer: 0,
   lastTime: performance.now(),
   frameCost: 0,
-  fastRender: true
+  fastRender: true,
+  attractorPreview: {
+    x: 0,
+    y: 0,
+    visible: false
+  }
 };
 
 const particle = {
@@ -583,6 +588,7 @@ function startLevel(index = 0, message) {
   smashShards.length = 0;
   particleTrail.length = 0;
   attractors.clear();
+  hideAttractorPreview();
   world.attractorsActive = false;
   syncPlannedControls();
   resetParticle();
@@ -750,6 +756,7 @@ function startHarderGame() {
 
 function showStartScreen() {
   world.mode = "start";
+  hideAttractorPreview();
   plannedControlsEl.hidden = true;
   showOverlay(
     "start",
@@ -793,6 +800,7 @@ function launchPlannedLevel() {
     return;
   }
   world.mode = "playing";
+  hideAttractorPreview();
   world.attractorsActive = false;
   world.graceUntil = performance.now() + START_GRACE_MS;
   showMessage(`LEVEL ${level.index + 1}`, 700);
@@ -835,9 +843,34 @@ function pointerPosition(event) {
   };
 }
 
+function canPreviewAttractorPlacement() {
+  if (world.playStyle === "planned") {
+    return world.mode === "planning" && attractors.size < 5;
+  }
+  return world.playStyle === "fast" && world.mode === "playing" && !world.won && !world.transitioning;
+}
+
+function updateAttractorPreview(event) {
+  if (!canPreviewAttractorPlacement()) {
+    world.attractorPreview.visible = false;
+    return;
+  }
+  const pos = pointerPosition(event);
+  world.attractorPreview.x = pos.x;
+  world.attractorPreview.y = pos.y;
+  world.attractorPreview.visible = true;
+}
+
+function hideAttractorPreview() {
+  world.attractorPreview.visible = false;
+}
+
 function addAttractor(event) {
+  updateAttractorPreview(event);
+
   if (world.playStyle === "planned" && world.mode === "playing") {
     event.preventDefault();
+    hideAttractorPreview();
     setAttractorsActive(true);
     return;
   }
@@ -864,6 +897,7 @@ function addAttractor(event) {
 
   if (world.playStyle !== "fast" || world.mode !== "playing" || world.won) return;
   canvas.setPointerCapture(event.pointerId);
+  hideAttractorPreview();
   const pos = pointerPosition(event);
   attractors.set(event.pointerId, {
     id: event.pointerId,
@@ -876,6 +910,7 @@ function addAttractor(event) {
 }
 
 function moveAttractor(event) {
+  updateAttractorPreview(event);
   if (!attractors.has(event.pointerId)) return;
   event.preventDefault();
 }
@@ -884,6 +919,7 @@ function releaseAttractor(event) {
   if (world.playStyle === "planned" && world.mode === "playing") {
     event.preventDefault();
     setAttractorsActive(false);
+    updateAttractorPreview(event);
     return;
   }
 
@@ -899,6 +935,7 @@ function releaseAttractor(event) {
   }
 
   attractor.shrinking = true;
+  updateAttractorPreview(event);
 }
 
 function restartLevel(delay = 900) {
@@ -908,6 +945,7 @@ function restartLevel(delay = 900) {
   world.pausedUntil = performance.now() + 650;
   world.pendingRestartAt = performance.now() + delay;
   attractors.clear();
+  hideAttractorPreview();
   showOverlay("loss", "You lost", "Restarting level...", "");
 }
 
@@ -1025,6 +1063,7 @@ function smashGoal() {
   world.transitioning = true;
   world.nextLevelAt = now + 1200;
   attractors.clear();
+  hideAttractorPreview();
   showMessage("SMASH", 900);
 }
 
@@ -1454,6 +1493,8 @@ function drawSmash() {
 }
 
 function drawAttractors() {
+  drawAttractorPlacementPreview();
+
   for (const attractor of attractors.values()) {
     const captureRadius = Math.max(26, attractor.radius * 1.35);
     const active = isAttractorActive(attractor);
@@ -1468,7 +1509,6 @@ function drawAttractors() {
     ctx.translate(attractor.x, attractor.y);
     ctx.globalCompositeOperation = "lighter";
     ctx.globalAlpha = 1;
-    drawAttractorOrbitBounds(attractor, phase);
 
     ctx.fillStyle = glowColor;
     ctx.beginPath();
@@ -1515,7 +1555,29 @@ function drawAttractors() {
   }
 }
 
-function drawAttractorOrbitBounds(attractor, phase) {
+function drawAttractorPlacementPreview() {
+  if (!world.attractorPreview.visible || !canPreviewAttractorPlacement()) return;
+
+  const phase = performance.now() * 0.002;
+  ctx.save();
+  ctx.translate(world.attractorPreview.x, world.attractorPreview.y);
+  ctx.globalCompositeOperation = "lighter";
+  drawAttractorOrbitBounds(phase);
+
+  ctx.fillStyle = attractorColor({ radius: MIN_ATTRACTOR_RADIUS }, 0.22, 2);
+  ctx.beginPath();
+  ctx.arc(0, 0, MIN_ATTRACTOR_RADIUS, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = attractorColor({ radius: MIN_ATTRACTOR_RADIUS }, 0.72, 8);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, MIN_ATTRACTOR_RADIUS, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawAttractorOrbitBounds(phase) {
   const minOrbitRadius = Math.max(26, MIN_ATTRACTOR_RADIUS * 1.35);
   const maxOrbitRadius = Math.max(26, MAX_ATTRACTOR_RADIUS * 1.35);
   const minColor = attractorColor({ radius: MIN_ATTRACTOR_RADIUS }, 0.24, -2);
@@ -1677,6 +1739,8 @@ function loop(now) {
 window.addEventListener("resize", resize);
 canvas.addEventListener("pointerdown", addAttractor);
 canvas.addEventListener("pointermove", moveAttractor);
+canvas.addEventListener("pointerenter", updateAttractorPreview);
+canvas.addEventListener("pointerleave", hideAttractorPreview);
 canvas.addEventListener("pointerup", releaseAttractor);
 canvas.addEventListener("pointercancel", releaseAttractor);
 overlayActionEl.addEventListener("click", () => {
