@@ -156,9 +156,9 @@ const levelConfigs = [
     targetSpeed: 9.6,
     goal: { edge: "left", align: 0.42, length: 0.44, thickness: 1.22 },
     obstacles: [
-      { kind: "destructible", breakSpeed: 6.8, x: 0.38, y: 0.27, width: 0.16, height: 18 },
-      { kind: "solid", x: 0.55, y: 0.5, width: 0.24, height: 18 },
-      { kind: "destructible", breakSpeed: 8.5, x: 0.68, y: 0.72, width: 18, height: 0.2 }
+      { kind: "destructible", breakSpeed: 6.8, x: 0.3, y: 0.26, width: 0.16, height: 18 },
+      { kind: "solid", x: 0.42, y: 0.48, width: 0.2, height: 18 },
+      { kind: "destructible", breakSpeed: 8.5, x: 0.28, y: 0.62, width: 18, height: 0.18 }
     ]
   },
   {
@@ -198,11 +198,11 @@ const levelConfigs = [
     targetSpeed: 11.6,
     goal: { edge: "left", align: 0.18, length: 0.34, thickness: 1.28 },
     obstacles: [
-      { kind: "destructible", breakSpeed: 8.9, x: 0.34, y: 0.36, width: 0.15, height: 18 },
-      { kind: "destructible", breakSpeed: 10.2, x: 0.58, y: 0.5, width: 0.16, height: 18 },
-      { kind: "solid", x: 0.7, y: 0.72, width: 0.18, height: 18 },
-      { kind: "destructible", breakSpeed: 11.1, x: 0.5, y: 0.23, width: 18, height: 0.18 },
-      { kind: "solid", x: 0.25, y: 0.58, width: 18, height: 0.2 }
+      { kind: "destructible", breakSpeed: 8.9, x: 0.28, y: 0.34, width: 0.15, height: 18 },
+      { kind: "destructible", breakSpeed: 10.2, x: 0.42, y: 0.18, width: 0.16, height: 18 },
+      { kind: "solid", x: 0.36, y: 0.5, width: 0.16, height: 18 },
+      { kind: "destructible", breakSpeed: 11.1, x: 0.32, y: 0.24, width: 18, height: 0.18 },
+      { kind: "solid", x: 0.18, y: 0.52, width: 18, height: 0.18 }
     ]
   },
   {
