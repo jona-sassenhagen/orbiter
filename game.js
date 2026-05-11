@@ -362,6 +362,8 @@ const world = {
   lastTime: performance.now(),
   frameCost: 0,
   fastRender: true,
+  draggedPlannedAttractorId: null,
+  draggedPlannedAttractorOffset: { x: 0, y: 0 },
   attractorPreview: {
     x: 0,
     y: 0,
@@ -572,7 +574,8 @@ function particleStartState() {
   };
 }
 
-function startLevel(index = 0, message) {
+function startLevel(index = 0, message, options = {}) {
+  const preserveAttractors = Boolean(options.preserveAttractors);
   const config = levelConfigs[index % levelConfigs.length];
   level.index = index;
   level.targetSpeed = config.targetSpeed + Math.floor(index / levelConfigs.length) * 0.8;
@@ -587,8 +590,13 @@ function startLevel(index = 0, message) {
   world.nextLevelAt = 0;
   smashShards.length = 0;
   particleTrail.length = 0;
-  attractors.clear();
+  if (preserveAttractors) {
+    resetPlannedAttractorsForPlanning();
+  } else {
+    attractors.clear();
+  }
   hideAttractorPreview();
+  world.draggedPlannedAttractorId = null;
   world.attractorsActive = false;
   syncPlannedControls();
   resetParticle();
@@ -830,6 +838,15 @@ function shrinkAttractors() {
   }
 }
 
+function resetPlannedAttractorsForPlanning() {
+  for (const attractor of attractors.values()) {
+    attractor.radius = MIN_ATTRACTOR_RADIUS;
+    attractor.shrinking = false;
+    attractor.pulse = 0;
+    attractor.age = 0;
+  }
+}
+
 function isAttractorActive(attractor) {
   if (world.playStyle === "planned") return world.attractorsActive;
   return !attractor.shrinking;
@@ -865,6 +882,21 @@ function hideAttractorPreview() {
   world.attractorPreview.visible = false;
 }
 
+function findPlannedAttractorAt(pos) {
+  let closest = null;
+  let closestDistance = Infinity;
+  for (const attractor of attractors.values()) {
+    if (!attractor.planned) continue;
+    const distance = Math.hypot(pos.x - attractor.x, pos.y - attractor.y);
+    const hitRadius = Math.max(28, attractor.radius + 10);
+    if (distance <= hitRadius && distance < closestDistance) {
+      closest = attractor;
+      closestDistance = distance;
+    }
+  }
+  return closest;
+}
+
 function addAttractor(event) {
   updateAttractorPreview(event);
 
@@ -876,11 +908,22 @@ function addAttractor(event) {
   }
 
   if (world.playStyle === "planned" && world.mode === "planning") {
+    const pos = pointerPosition(event);
+    const existing = findPlannedAttractorAt(pos);
+    if (existing) {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      world.draggedPlannedAttractorId = existing.id;
+      world.draggedPlannedAttractorOffset.x = existing.x - pos.x;
+      world.draggedPlannedAttractorOffset.y = existing.y - pos.y;
+      hideAttractorPreview();
+      return;
+    }
+
     if (attractors.size >= 5) {
       showMessage("MAX 5", 650);
       return;
     }
-    const pos = pointerPosition(event);
     const id = `planned-${attractors.size}-${Math.round(performance.now())}`;
     attractors.set(id, {
       id,
@@ -910,12 +953,29 @@ function addAttractor(event) {
 }
 
 function moveAttractor(event) {
+  if (world.playStyle === "planned" && world.mode === "planning" && world.draggedPlannedAttractorId !== null) {
+    const attractor = attractors.get(world.draggedPlannedAttractorId);
+    if (attractor) {
+      const pos = pointerPosition(event);
+      attractor.x = pos.x + world.draggedPlannedAttractorOffset.x;
+      attractor.y = pos.y + world.draggedPlannedAttractorOffset.y;
+      event.preventDefault();
+      return;
+    }
+  }
+
   updateAttractorPreview(event);
   if (!attractors.has(event.pointerId)) return;
   event.preventDefault();
 }
 
 function releaseAttractor(event) {
+  if (world.playStyle === "planned" && world.mode === "planning" && world.draggedPlannedAttractorId !== null) {
+    world.draggedPlannedAttractorId = null;
+    updateAttractorPreview(event);
+    return;
+  }
+
   if (world.playStyle === "planned" && world.mode === "playing") {
     event.preventDefault();
     setAttractorsActive(false);
@@ -944,7 +1004,12 @@ function restartLevel(delay = 900) {
   world.losses += 1;
   world.pausedUntil = performance.now() + 650;
   world.pendingRestartAt = performance.now() + delay;
-  attractors.clear();
+  if (world.playStyle === "planned") {
+    resetPlannedAttractorsForPlanning();
+  } else {
+    attractors.clear();
+  }
+  world.draggedPlannedAttractorId = null;
   hideAttractorPreview();
   showOverlay("loss", "You lost", "Restarting level...", "");
 }
@@ -1263,7 +1328,7 @@ function update(dt) {
     if (performance.now() >= world.pendingRestartAt) {
       hideOverlay();
       world.mode = world.playStyle === "planned" ? "planning" : "playing";
-      startLevel(level.index, null);
+      startLevel(level.index, null, { preserveAttractors: world.playStyle === "planned" });
       if (world.playStyle === "planned") {
         showMessage("PLACE UP TO 5", 900);
       } else {
